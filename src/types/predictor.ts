@@ -9,12 +9,12 @@ import type { Dtype } from "./value"
 /**
  * Predictor access mode.
  */
-export type PredictorAccess = "PUBLIC" | "PRIVATE";
+export type PredictorAccess = "private" | "public" | "unlisted";
 
 /**
  * Predictor status.
  */
-export type PredictorStatus = "COMPILING" | "ACTIVE" | "ARCHIVED";
+export type PredictorStatus = "compiling" | "active" | "archived";
 
 /**
  * Prediction function.

@@ -6,6 +6,11 @@
 import type { Value } from "./value"
 
 /**
+ * Prediction acceleration.
+ */
+export type Acceleration = "auto" | "cpu" | "gpu" | "npu";
+
+/**
  * Prediction.
  */
 export interface Prediction {
@@ -61,26 +66,4 @@ export interface PredictionResource {
      * Resource name.
      */
     name?: string;
-}
-
-/**
- * Predictor acceleration.
- */
-export enum Acceleration {
-    /**
-     * Automatically choose the best acceleration for the current device.
-     */
-    Auto = 0,
-    /**
-     * Predictions run on the CPU.
-     */
-    CPU = 1 << 0,
-    /**
-     * Predictions run on the GPU.
-     */
-    GPU = 1 << 1,
-    /**
-     * Predictions run on the neural processor.
-     */
-    NPU = 1 << 2,
 }

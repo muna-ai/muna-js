@@ -20,7 +20,7 @@ export interface CreatePredictionInput {
     /**
      * Prediction acceleration.
      */
-    acceleration?: Acceleration;
+    acceleration?: Acceleration | Acceleration[];
     /**
      * Function client identifier.
      * Specify this to override the current client identifier.
@@ -146,7 +146,7 @@ export class PredictionService {
             configuration = FXNConfiguration.create();
             configuration.tag = tag;
             configuration.token = prediction.configuration;
-            configuration.acceleration = acceleration ?? 0;
+            configuration.acceleration = this.toAcceleration(acceleration);
             for (const resource of prediction.resources)
                 await configuration.addResource(resource);
             const predictor = FXNPredictor.create(configuration);
@@ -208,6 +208,25 @@ export class PredictionService {
         ) : null;
         const created = new Date().toISOString() as unknown as Date;
         return { id, tag, created, results, latency, error, logs };
+    }
+
+    private toAcceleration (acceleration: Acceleration | Acceleration[] | undefined): number {
+        acceleration = acceleration ?? [];
+        const accelerations = Array.isArray(acceleration) ? acceleration : [acceleration];
+        const constant = accelerations
+            .map(a => this.toAccelerationConstant(a))
+            .reduce((p, c) => p | c, 0);
+        return constant;
+    }
+
+    private toAccelerationConstant (acceleration: Acceleration): number {
+        switch (acceleration) {
+            case "auto":    return 0;
+            case "cpu":     return 1;
+            case "gpu":     return 2;
+            case "npu":     return 4;
+            default:        return 0;
+        }
     }
 }
 
