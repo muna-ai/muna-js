@@ -1,27 +1,27 @@
 /*
-*   Function
+*   Muna
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
 import { expect, should, use } from "chai"
 import chaiAsPromised from "chai-as-promised"
 import mocha from "@testdeck/mocha"
-import { Prediction, Function } from "../src"
+import { Muna, type Prediction } from "../src"
 
 @mocha.suite("Predictions")
 class PredictionTest {
 
-    private fxn: Function;
+    private muna: Muna;
 
-    public before () {
+    public before() {
         should();
         use(chaiAsPromised);
-        this.fxn = new Function();
+        this.muna = new Muna();
     }
 
     @mocha.test
-    async "Should create a prediction" () {
-        const prediction = await this.fxn.predictions.create({
+    async "Should create a prediction"() {
+        const prediction = await this.muna.predictions.create({
             tag: "@yusuf/area",
             inputs: { radius: 4 }
         });
@@ -30,9 +30,9 @@ class PredictionTest {
     }
 
     @mocha.test.skip
-    async "Should stream a prediction" () {
+    async "Should stream a prediction"() {
         const sentence = "Hello world";
-        const stream = await this.fxn.predictions.stream({
+        const stream = await this.muna.predictions.stream({
             tag: "@yusuf/streaming",
             inputs: { sentence }
         });

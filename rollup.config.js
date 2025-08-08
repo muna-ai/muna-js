@@ -6,9 +6,9 @@ import terser from "@rollup/plugin-terser"
 const config = {
   input: "build/lib/index.js",
   output: {
-    file: "build/umd/fxn.js",
+    file: "build/umd/muna.js",
     format: "umd",
-    name: "fxnjs",
+    name: "muna",
   },
   plugins: [
     commonjs(),

@@ -1,16 +1,16 @@
 /*
-*   Function
+*   Muna
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
 import { decode, encode } from "base64-arraybuffer"
 import parseDataURL from "data-urls"
-import { getFxnc, type FXNC } from "../c"
-import type { FunctionClient } from "../client"
-import { BoolArray, isImage, isTensor, isTypedArray } from "../types"
-import type { Dtype, Prediction, Tensor, TypedArray, Value } from "../types"
+import { getFxnc, type FXNC } from "../../c"
+import type { MunaClient } from "../../client"
+import { BoolArray, isImage, isTensor, isTypedArray } from "../../types"
+import type { Dtype, Prediction, Tensor, TypedArray, Value } from "../../types"
 
-export type RemoteAcceleration = "auto" | "cpu" | "a40" | "a100";
+export type RemoteAcceleration = "remote_auto" | "remote_cpu" | "remote_a40" | "remote_a100";
 
 export interface CreateRemotePredictionInput {
     /**
@@ -29,10 +29,10 @@ export interface CreateRemotePredictionInput {
 
 export class RemotePredictionService {
 
-    private readonly client: FunctionClient;
+    private readonly client: MunaClient;
     private fxnc: FXNC;
 
-    public constructor (client: FunctionClient) {
+    public constructor(client: MunaClient) {
         this.client = client;
     }
 
@@ -41,7 +41,7 @@ export class RemotePredictionService {
      * @param input Prediction input.
      * @returns Prediction.
      */
-    public async create (input: CreateRemotePredictionInput): Promise<Prediction> {
+    public async create(input: CreateRemotePredictionInput): Promise<Prediction> {
         const { tag, inputs, acceleration = "auto" } = input;
         const inputMap = Object.fromEntries(await Promise.all(Object
             .entries(inputs)
@@ -63,7 +63,7 @@ export class RemotePredictionService {
         return { ...prediction, results };
     }
 
-    private async toValue (input: ToValueInput): Promise<RemoteValue> {
+    private async toValue(input: ToValueInput): Promise<RemoteValue> {
         const { object, name, maxDataUrlSize } = input;
         if (object === null)
             return { data: null, type: "null" };
@@ -115,7 +115,7 @@ export class RemotePredictionService {
         throw new Error(`Failed to serialize value '${object}' of type \`${typeof(object)}\` because it is not supported`);
     }
 
-    private async toObject ({ data: url, type, shape }: RemoteValue): Promise<Value> {
+    private async toObject({ data: url, type, shape }: RemoteValue): Promise<Value> {
         if (type === "null")
             return null;
         const buffer = await this.download(url);
@@ -178,7 +178,7 @@ export class RemotePredictionService {
         throw new Error(`Failed to deserialize value with type \`${type}\` because it is not supported`);
     }
 
-    private async upload ({
+    private async upload({
         buffer,
         name,
         mime = "application/octet-stream",
@@ -206,7 +206,7 @@ export class RemotePredictionService {
         return value.downloadUrl;
     }
 
-    private async download (url: string): Promise<ArrayBuffer> {
+    private async download(url: string): Promise<ArrayBuffer> {
         if (url.startsWith("data:"))
             return (parseDataURL(url).body as Uint8Array).buffer
         const response = await fetch(url);
@@ -244,7 +244,7 @@ type RemotePrediction =
     { results: RemoteValue[] };
 
 function getTypedArrayDtype (data: TypedArray): Dtype {
-    if (data instanceof BoolArray)          return "bool";
+    if (data instanceof BoolArray)          return "bool"; // This MUST be first
     if (data instanceof Float32Array)       return "float32";
     if (data instanceof Float64Array)       return "float64";
     if (data instanceof Int8Array)          return "int8";

@@ -1,10 +1,10 @@
 /*
-*   Function
+*   Muna
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
 import { RemotePredictionService } from "./remote"
-import type { FunctionClient } from "../client"
+import type { MunaClient } from "../../client"
 
 export class PredictionService {
 
@@ -13,7 +13,7 @@ export class PredictionService {
      */
     public readonly remote: RemotePredictionService;
 
-    public constructor (client: FunctionClient) {
+    public constructor(client: MunaClient) {
         this.remote = new RemotePredictionService(client);
     }
 }

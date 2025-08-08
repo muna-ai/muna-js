@@ -1,14 +1,14 @@
 /*
-*   Function
+*   Muna
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
 /**
- * Function user.
+ * Muna user.
  */
 export interface User {
     /**
-     * Function username.
+     * Muna username.
      * This is always lowercase and uniquely identifies a user account.
      */
     username: string;

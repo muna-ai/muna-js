@@ -1,33 +1,33 @@
 /*
-*   Function
+*   Muna
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
 import { BetaClient } from "./beta/client"
-import { FunctionClient } from "./client"
+import { MunaClient } from "./client"
 import { PredictionService, PredictorService, UserService } from "./services"
 
-export interface FunctionConfig {
+export interface MunaConfig {
     /**
-     * Function access key.
+     * Muna access key.
      */
     accessKey?: string;
     /**
-     * Function graph API URL.
+     * Muna API URL.
      */
     url?: string;
 }
 
 /**
- * Function client.
+ * Muna client.
  */
-export class Function {
+export class Muna {
 
     /**
-     * Graph API client.
+     * Muna API client.
      * Do NOT use this unless you know what you are doing.
      */
-    public readonly client: FunctionClient;
+    public readonly client: MunaClient;
 
     /**
      * Manage users.
@@ -50,11 +50,11 @@ export class Function {
     public readonly beta: BetaClient;
 
     /**
-     * Create a Function client.
-     * @param config Function client configuration.
+     * Create a Muna client.
+     * @param config Muna client configuration.
      */
-    public constructor (config?: FunctionConfig) {
-        this.client = new FunctionClient(config ?? { });
+    public constructor(config?: MunaConfig) {
+        this.client = new MunaClient(config ?? { });
         this.users = new UserService(this.client);
         this.predictors = new PredictorService(this.client);
         this.predictions = new PredictionService(this.client);

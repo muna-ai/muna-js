@@ -1,5 +1,5 @@
 /*
-*   Function
+*   Muna
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
@@ -92,7 +92,7 @@ export interface Parameter {
     name: string;
     /**
      * Parameter type.
-     * This is `null` if the type is unknown or unsupported by Function.
+     * This is `null` if the type is unknown or unsupported by Muna.
      */
     type?: Dtype;
     /**

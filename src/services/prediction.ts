@@ -1,10 +1,10 @@
 /*
-*   Function
+*   Muna
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
 import { getFxnc, type FXNC } from "../c"
-import type { FunctionClient } from "../client"
+import type { MunaClient } from "../client"
 import { BoolArray, isImage, isTensor } from "../types"
 import type { Acceleration, Prediction, TypedArray, Value } from "../types"
 
@@ -22,7 +22,7 @@ export interface CreatePredictionInput {
      */
     acceleration?: Acceleration | Acceleration[];
     /**
-     * Function client identifier.
+     * Muna client identifier.
      * Specify this to override the current client identifier.
      */
     clientId?: string;
@@ -42,11 +42,11 @@ export interface DeletePredictionInput {
 
 export class PredictionService {
 
-    private readonly client: FunctionClient;
+    private readonly client: MunaClient;
     private readonly cache: Map<string, FXNPredictor>;
     private fxnc: FXNC;
 
-    public constructor (client: FunctionClient) {
+    public constructor(client: MunaClient) {
         this.client = client;
         this.cache = new Map<string, FXNPredictor>();
     }
@@ -56,7 +56,7 @@ export class PredictionService {
      * @param input Prediction input.
      * @returns Prediction.
      */
-    public async create (input: CreatePredictionInput): Promise<Prediction> {
+    public async create(input: CreatePredictionInput): Promise<Prediction> {
         const { tag, inputs } = input;
         if (!inputs)
             return this.createRawPrediction(input);
@@ -79,7 +79,7 @@ export class PredictionService {
      * @param input Prediction input.
      * @returns Generator which asynchronously returns prediction results as they are streamed from the predictor.
      */
-    public async * stream (input: CreatePredictionInput): AsyncGenerator<Prediction> {
+    public async * stream(input: CreatePredictionInput): AsyncGenerator<Prediction> {
         const { tag, inputs } = input;
         assert(!!inputs, `Failed to stream ${tag} prediction because prediction inputs were not provided`);
         const predictor = await this.getPredictor(input);
@@ -106,7 +106,7 @@ export class PredictionService {
      * @param input Input arguments.
      * @returns Whether the predictor was successfully deleted from memory.
      */
-    public async delete (input: DeletePredictionInput): Promise<boolean> {
+    public async delete(input: DeletePredictionInput): Promise<boolean> {
         const { tag } = input;
         if (!this.cache.has(tag))
             return false;
@@ -116,7 +116,7 @@ export class PredictionService {
         return true;
     }
 
-    private async createRawPrediction (input: CreatePredictionInput): Promise<Prediction> {
+    private async createRawPrediction(input: CreatePredictionInput): Promise<Prediction> {
         this.fxnc ??= await getFxnc();
         const {
             tag,
@@ -132,12 +132,12 @@ export class PredictionService {
         return prediction;
     }
 
-    private async getPredictor (input: CreatePredictionInput): Promise<FXNPredictor> {
+    private async getPredictor(input: CreatePredictionInput): Promise<FXNPredictor> {
         const { tag, acceleration } = input;
         if (this.cache.has(tag))
             return this.cache.get(tag);
         this.fxnc ??= await getFxnc();
-        assert(this.fxnc, `Failed to create ${tag} prediction because Function implementation has not been loaded`);
+        assert(this.fxnc, `Failed to create ${tag} prediction because Muna implementation has not been loaded`);
         const { FXNConfiguration, FXNPredictor } = this.fxnc;
         const prediction = await this.createRawPrediction(input);
         assert(prediction.configuration, `Failed to create ${tag} prediction because configuration token is missing`);
@@ -157,7 +157,7 @@ export class PredictionService {
         }   
     }
     
-    private toValue (value: Value): FXNValue {
+    private toValue(value: Value): FXNValue {
         const { FXNValue } = this.fxnc;
         if (value == null)
             return FXNValue.createNull();
@@ -192,7 +192,7 @@ export class PredictionService {
         throw new Error(`Failed to create prediction input value for unsupported type: ${typeof(value)}`);
     }
 
-    private toValueMap (inputs: Record<string, Value>): FXNValueMap {
+    private toValueMap(inputs: Record<string, Value>): FXNValueMap {
         const { FXNValueMap } = this.fxnc;
         const map = FXNValueMap.create();
         for (const [key, value] of Object.entries(inputs))
@@ -200,7 +200,7 @@ export class PredictionService {
         return map;
     }
 
-    private toPrediction (tag: string, prediction: FXNPrediction): Prediction {
+    private toPrediction(tag: string, prediction: FXNPrediction): Prediction {
         const { id, results: outputMap, latency, error, logs } = prediction;
         const results = outputMap ? Array.from(
             { length: outputMap.size },
@@ -210,7 +210,7 @@ export class PredictionService {
         return { id, tag, created, results, latency, error, logs };
     }
 
-    private toAcceleration (acceleration: Acceleration | Acceleration[] | undefined): number {
+    private toAcceleration(acceleration: Acceleration | Acceleration[] | undefined): number {
         acceleration = acceleration ?? [];
         const accelerations = Array.isArray(acceleration) ? acceleration : [acceleration];
         const constant = accelerations
@@ -219,7 +219,7 @@ export class PredictionService {
         return constant;
     }
 
-    private toAccelerationConstant (acceleration: Acceleration): number {
+    private toAccelerationConstant(acceleration: Acceleration): number {
         switch (acceleration) {
             case "auto":    return 0;
             case "cpu":     return 1;
@@ -230,7 +230,7 @@ export class PredictionService {
     }
 }
 
-function assert (condition: any, message: string) {
+function assert(condition: any, message: string) {
     if (!condition)
         throw new Error(message ?? "An unknown error occurred");
 }

@@ -1,34 +1,34 @@
 /*
-*   Function
+*   Muna
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
 import { expect, should, use } from "chai"
 import chaiAsPromised from "chai-as-promised"
 import mocha from "@testdeck/mocha"
-import { Function } from "../src"
+import { Muna } from "../src"
 
 @mocha.suite("Predictors")
 class PredictorTest {
 
-    private fxn: Function;
+    private muna: Muna;
 
     public before () {
         should();
         use(chaiAsPromised);
-        this.fxn = new Function();
+        this.muna = new Muna();
     }
 
     @mocha.test
-    async "Should retrieve a predictor" () {
+    async "Should retrieve a predictor"() {
         const tag = "@yusuf/identity";
-        const predictor = await this.fxn.predictors.retrieve({ tag });
+        const predictor = await this.muna.predictors.retrieve({ tag });
         expect(predictor?.tag).to.equal(tag);
     }
 
     @mocha.test
-    async "Should retrieve a non-existent predictor" () {
-        const predictor = await this.fxn.predictors.retrieve({ tag: "@yusuf/404" });
+    async "Should retrieve a non-existent predictor"() {
+        const predictor = await this.muna.predictors.retrieve({ tag: "@yusuf/404" });
         expect(predictor).to.be.null;
     }
 }

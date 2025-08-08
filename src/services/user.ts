@@ -1,16 +1,16 @@
 /*
-*   Function
+*   Muna
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
-import type { FunctionAPIError, FunctionClient } from "../client"
+import type { MunaAPIError, MunaClient } from "../client"
 import type { User } from "../types"
 
 export class UserService {
 
-    private readonly client: FunctionClient;
+    private readonly client: MunaClient;
 
-    public constructor (client: FunctionClient) {
+    public constructor(client: MunaClient) {
         this.client = client;
     }
 
@@ -19,12 +19,12 @@ export class UserService {
      * @param input Input arguments. If `null` then this will retrieve the currently authenticated user.
      * @returns User.
      */
-    public async retrieve (): Promise<User | null> {
+    public async retrieve(): Promise<User | null> {
         try {
             const user = await this.client.request<User>({ path: "/users" });
             return user;
         } catch (error: unknown) {
-            if ((error as FunctionAPIError).status === 401)
+            if ((error as MunaAPIError).status === 401)
                 return null;
             throw error;
         }

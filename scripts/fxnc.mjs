@@ -1,5 +1,5 @@
 /*
-*   Function
+*   Muna
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
@@ -9,17 +9,17 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 const { writeFile, mkdir } = fsPromises;
 
-const FXNC_VERSION = "0.0.35";
+const FXNC_VERSION = "0.0.36";
 const FXNODE_VERSION = "0.0.3";
 
-function getLibName () {
+function getLibName() {
   switch (process.platform) {
     case "linux": return "libFunction";
     default:      return "Function";
   }
 }
 
-function getLibSuffix () {
+function getLibSuffix() {
   switch (process.platform) {
     case "darwin":  return ".dylib";
     case "linux":   return ".so";
@@ -28,7 +28,7 @@ function getLibSuffix () {
   }
 }
 
-function getPlatformId () {
+function getPlatformId() {
   switch (process.platform) {
     case "darwin":  return "macos";
     case "linux":   return "linux";
@@ -37,7 +37,7 @@ function getPlatformId () {
   }
 }
 
-function getArchId () {
+function getArchId() {
   switch (process.arch) {
     case "arm64":   return "arm64";
     case "x64":     return "x86_64";
@@ -59,5 +59,5 @@ try {
   await writeFile(fxncPath, Buffer.from(await fxncResponse.arrayBuffer()));
   await writeFile(fxnodePath, Buffer.from(await fxnodeResponse.arrayBuffer()));
 } catch (e) {
-  console.error(chalk.redBright(`Function Error: Failed to download library with error: ${e.message}. Predictions will fail.`));
+  console.error(chalk.redBright(`Muna Error: Failed to download library with error: ${e.message}. Predictions will fail.`));
 }

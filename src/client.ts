@@ -1,9 +1,9 @@
 /*
-*   Function
+*   Muna
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
-import type { FunctionConfig } from "./function"
+import type { MunaConfig } from "./muna"
 
 export interface RequestInput {
     /**
@@ -26,34 +26,34 @@ export interface RequestInput {
 }
 
 /**
- * Function API client.
+ * Muna API client.
  */
-export class FunctionClient {
+export class MunaClient {
 
     /**
-     * Function API URL.
+     * Muna API URL.
      */
     public readonly url: string;
 
     private readonly auth: string;
-    private static readonly URL: string = "https://api.fxn.ai/v1";
+    private static readonly URL: string = "https://api.muna.ai/v1";
 
     /**
-     * Create a Function API client.
-     * @param config Function client configuration.
+     * Create a Muna API client.
+     * @param config Muna client configuration.
      */
-    public constructor ({
-        accessKey = process.env.FXN_ACCESS_KEY,
-        url = process.env.FXN_API_URL ?? FunctionClient.URL
-    }: FunctionConfig) {
+    public constructor({
+        accessKey = process.env.MUNA_ACCESS_KEY,
+        url = process.env.MUNA_API_URL ?? MunaClient.URL
+    }: MunaConfig) {
         this.url = url;
         this.auth = accessKey != null ? `Bearer ${accessKey}` : "";
     }
 
     /**
-     * Make a request to the Function API.
+     * Make a request.
      */
-    public async request<T = any> ({
+    public async request<T = any>({
         path,
         method = "GET",
         headers,
@@ -69,7 +69,7 @@ export class FunctionClient {
         );
         const payload = await response.json();
         if (!response.ok)
-            throw new FunctionAPIError(
+            throw new MunaAPIError(
                 payload?.errors?.[0].message ?? "An unknown error occurred",
                 response.status
             );
@@ -77,7 +77,7 @@ export class FunctionClient {
     }
 }
 
-export class FunctionAPIError extends Error {
+export class MunaAPIError extends Error {
 
     /**
      * Request status code.
@@ -86,7 +86,7 @@ export class FunctionAPIError extends Error {
 
     public constructor (message: string, status: number) {
         super(message);
-        this.name = "FunctionAPIError";
+        this.name = "MunaAPIError";
         this.status = status;
         Error.captureStackTrace(this, this.constructor);
     }

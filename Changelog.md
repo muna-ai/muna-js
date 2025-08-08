@@ -1,4 +1,5 @@
 ## 0.0.45
++ Function is now Muna!
 + Refactored `Acceleration` enumeration to be string union type.
 
 ## 0.0.44

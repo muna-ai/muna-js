@@ -1,5 +1,5 @@
 /*
-*   Function
+*   Muna
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
@@ -7,6 +7,10 @@
  * Value data type.
  */
 export type Dtype =
+    "bfloat16"  |
+    "float16"   |
+    "float32"   |
+    "float64"   |
     "int8"      |
     "int16"     |
     "int32"     |
@@ -15,9 +19,6 @@ export type Dtype =
     "uint16"    |
     "uint32"    |
     "uint64"    |
-    "float16"   |
-    "float32"   |
-    "float64"   |
     "bool"      |
     "string"    |
     "list"      |
@@ -112,22 +113,22 @@ export type Value =
     null;
 
 /**
- * Check whether an input value is a Function `Tensor`.
+ * Check whether an input value is a Muna `Tensor`.
  * @param value Input value.
  * @returns Whether the input value is a tensor.
  */
-export function isTensor (value: any): value is Tensor {
+export function isTensor(value: any): value is Tensor {
     return value != null            &&
         isTypedArray(value.data)    &&
         Array.isArray(value.shape);
 }
 
 /**
- * Check whether an input value is a Function `Image`.
+ * Check whether an input value is a Muna `Image`.
  * @param value Input value.
  * @returns Whether the input value is an image.
  */
-export function isImage (value: any): value is Image {
+export function isImage(value: any): value is Image {
     return value != null                                &&
         (
             value.data instanceof Uint8Array            ||
@@ -143,7 +144,7 @@ export function isImage (value: any): value is Image {
  * @param value Input value.
  * @returns Whether the input value is a typed array.
  */
-export function isTypedArray (value: any): value is TypedArray {
+export function isTypedArray(value: any): value is TypedArray {
     if (value instanceof Float32Array)      return true;
     if (value instanceof Float64Array)      return true;
     if (value instanceof Int8Array)         return true;
