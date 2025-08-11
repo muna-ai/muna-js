@@ -1,6 +1,6 @@
 {
   "name": "muna",
-  "version": "0.0.47",
+  "version": "0.0.48",
   "description": "Run AI models anywhere.",
   "scripts": {
     "build": "npm run clean && npm run build:esm && npm run build:umd",
@@ -30,18 +30,6 @@
   "main": "build/lib/index.js",
   "typings": "build/types/index.d.ts",
   "unpkg": "build/umd/muna.js",
-  "exports": {
-    ".": {
-      "types": "./build/types/index.d.ts",
-      "import": "./build/lib/index.js",
-      "require": "./build/lib/index.js"
-    },
-    "./beta": {
-      "types": "./build/types/beta/types.d.ts",
-      "import": "./build/lib/beta/types.js",
-      "require": "./build/lib/beta/types.js"
-    }
-  },
   "dependencies": {
     "base64-arraybuffer": "^1.0.2",
     "chalk": "^5.3.0",

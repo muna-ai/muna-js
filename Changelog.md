@@ -1,3 +1,6 @@
+## 0.0.48
+*INCOMPLETE*
+
 ## 0.0.47
 + Added `muna.beta.chat.completions.create` method to create chat completions mirroring the OpenAI client.
 
