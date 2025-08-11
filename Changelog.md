@@ -1,3 +1,6 @@
+## 0.0.49
+*INCOMPLETE*
+
 ## 0.0.48
 + Fixed `muna.predictions.create` error when an input value is a `boolean`, `boolean[]` or `BoolArray`.
 
