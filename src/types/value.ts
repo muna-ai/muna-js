@@ -35,10 +35,16 @@ export type Dtype =
  */
 export class BoolArray extends Uint8Array {
 
-    constructor (values: ArrayBuffer | boolean[]) {
+    constructor(values: ArrayBuffer | boolean[]) {
         super(Array.isArray(values) ? values.map(v => +v) : values);
     }
 }
+
+Object.defineProperty(
+    BoolArray,
+    "name",
+    { value: "BoolArray", writable: false }
+);
 
 /**
  * A `TypedArray` instance.

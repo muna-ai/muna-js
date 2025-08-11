@@ -1,5 +1,5 @@
 ## 0.0.48
-*INCOMPLETE*
++ Fixed `muna.predictions.create` error when an input value is a `boolean`, `boolean[]` or `BoolArray`.
 
 ## 0.0.47
 + Added `muna.beta.chat.completions.create` method to create chat completions mirroring the OpenAI client.
