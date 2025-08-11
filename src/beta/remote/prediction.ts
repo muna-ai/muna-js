@@ -3,8 +3,8 @@
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
-import { RemotePredictionService } from "./remote"
 import type { MunaClient } from "../../client"
+import { RemotePredictionService } from "./remote"
 
 export class PredictionService {
 
