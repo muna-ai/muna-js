@@ -1,5 +1,5 @@
 ## 0.0.49
-*INCOMPLETE*
++ Upgraded to Function C 0.0.37.
 
 ## 0.0.48
 + Fixed `muna.predictions.create` error when an input value is a `boolean`, `boolean[]` or `BoolArray`.
