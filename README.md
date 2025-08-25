@@ -2,7 +2,7 @@
 
 ![Muna logo](https://raw.githubusercontent.com/muna-ai/.github/main/logo_wide.png)
 
-Run AI functions anywhere.
+Run AI models anywhere.
 
 > [!CAUTION]
 > **Never embed access keys client-side (i.e. in the browser)**. Instead, create a proxy URL in your backend.
