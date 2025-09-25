@@ -1,5 +1,6 @@
 ## 0.0.49
-+ Upgraded to Function C 0.0.37.
++ Refactored `muna.beta.chat` OpenAI chat service to `muna.beta.openai.chat`.
++ Upgraded to Function C 0.0.38.
 
 ## 0.0.48
 + Fixed `muna.predictions.create` error when an input value is a `boolean`, `boolean[]` or `BoolArray`.

@@ -11,4 +11,4 @@ export type { CreateRemotePredictionInput, RemoteAcceleration } from "./beta/rem
 export type {
     ChatCompletion, ChatCompletionChunk,
     ChatCompletionMessage, CompletionUsage
-} from "./beta/chat/types"
+} from "./beta/openai/types"

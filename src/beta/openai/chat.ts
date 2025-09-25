@@ -14,7 +14,10 @@ export class ChatService {
      */
     public readonly completions: ChatCompletionsService;
 
-    public constructor(predictions: PredictionService, remotePredictions: RemotePredictionService) {
+    public constructor(
+        predictions: PredictionService,
+        remotePredictions: RemotePredictionService
+    ) {
         this.completions = new ChatCompletionsService(predictions, remotePredictions);
     }
 }

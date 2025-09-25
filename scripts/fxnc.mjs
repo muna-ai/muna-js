@@ -9,7 +9,7 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 const { writeFile, mkdir } = fsPromises;
 
-const FXNC_VERSION = "0.0.36";
+const FXNC_VERSION = "0.0.38";
 const FXNODE_VERSION = "0.0.3";
 
 function getLibName() {

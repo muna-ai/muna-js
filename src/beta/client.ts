@@ -5,7 +5,7 @@
 
 import type { MunaClient } from "../client"
 import type { PredictionService as EdgePredictionService } from "../services"
-import { ChatService } from "./chat"
+import { OpenAIClient } from "./openai"
 import { PredictionService } from "./remote"
 
 /**
@@ -19,12 +19,12 @@ export class BetaClient {
     public readonly predictions: PredictionService;
 
     /**
-     * Make chat conversations.
+     * OpenAI client.
      */
-    public readonly chat: ChatService;
+    public readonly openai: OpenAIClient;
 
     public constructor(client: MunaClient, predictions: EdgePredictionService) {
         this.predictions = new PredictionService(client);
-        this.chat = new ChatService(predictions, this.predictions.remote);
+        this.openai = new OpenAIClient(predictions, this.predictions.remote);
     }
 }
