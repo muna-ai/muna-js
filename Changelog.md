@@ -1,5 +1,5 @@
 ## 0.0.50
-*INCOMPLETE*
++ Added `Parameter.modality` for working with specialized data types (e.g. audio, embeddings).
 
 ## 0.0.49
 + Refactored `muna.beta.chat` OpenAI chat service to `muna.beta.openai.chat`.

@@ -100,6 +100,10 @@ export interface Parameter {
      */
     description?: string;
     /**
+     * Parameter modality for specialized data types.
+     */
+    modality?: string;
+    /**
      * Parameter is optional.
      */
     optional?: boolean;
