@@ -14,7 +14,7 @@ export interface ChatCompletionCreateParamsBase {
      */
     messages: ChatCompletionMessage[];
     /**
-     * Chat model predictor tag.
+     * Chat predictor tag.
      */
     model: string;
     /**

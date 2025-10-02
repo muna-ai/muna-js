@@ -4,6 +4,7 @@
 */
 
 export * from "./dtype"
+export * from "./parameter"
 export * from "./prediction"
 export * from "./predictor"
 export * from "./user"

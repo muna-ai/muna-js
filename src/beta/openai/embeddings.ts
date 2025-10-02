@@ -16,7 +16,7 @@ export interface EmbeddingCreateParams {
      */
     input: string | string[];
     /**
-     * Embedding model predictor tag.
+     * Embedding predictor tag.
      */
     model: string;
     /**
@@ -34,14 +34,14 @@ export interface EmbeddingCreateParams {
     acceleration?: Acceleration | RemoteAcceleration;
 }
 
-type PredictorEmbeddingDelegate = (params: EmbeddingCreateParams) => Promise<CreateEmbeddingResponse>;
+type EmbeddingDelegate = (params: EmbeddingCreateParams) => Promise<CreateEmbeddingResponse>;
 
 export class EmbeddingsService {
 
     private readonly predictors: PredictorService;
     private readonly predictions: PredictionService;
     private readonly remotePredictions: RemotePredictionService;
-    private readonly cache: Map<string, PredictorEmbeddingDelegate>;
+    private readonly cache: Map<string, EmbeddingDelegate>;
 
     public constructor(
         predictors: PredictorService,
@@ -51,12 +51,12 @@ export class EmbeddingsService {
         this.predictors = predictors;
         this.predictions = predictions;
         this.remotePredictions = remotePredictions;
-        this.cache = new Map<string, PredictorEmbeddingDelegate>();
+        this.cache = new Map<string, EmbeddingDelegate>();
     }
 
     public async create(params: EmbeddingCreateParams): Promise<CreateEmbeddingResponse> {
         // Ensure we have a delegate
-        const { model: tag, input, encoding_format = "float" } = params;
+        const { model: tag, input, encoding_format = "float", acceleration = "auto" } = params;
         if (!this.cache.has(tag)) {
             const delegate = await this.createEmbeddingDelegate(tag);
             this.cache.set(tag, delegate);
@@ -66,13 +66,14 @@ export class EmbeddingsService {
         const response = await delegate({
             ...params,
             input: typeof input === "string" ? [input] : input,
-            encoding_format
+            encoding_format,
+            acceleration
         });
         // Return
         return response;
     }
 
-    private async createEmbeddingDelegate(tag: string): Promise<PredictorEmbeddingDelegate> {
+    private async createEmbeddingDelegate(tag: string): Promise<EmbeddingDelegate> {
         // Retrieve predictor
         const predictor = await this.predictors.retrieve({ tag });
         const signature = predictor.signature;
@@ -87,14 +88,14 @@ export class EmbeddingsService {
         if (!inputParam)
             throw new Error(
                 `${tag} cannot be used with OpenAI embedding API because 
-                it does not have a valid text embedding input parameter.`
+                it does not have the required text embedding input parameter.`
             );
         // Get the Matryoshka dim parameter (optional)
         const matryoshkaParam = signature.inputs.find(param => 
             param.type.includes("int") && 
             param.denotation === "embedding.dims"
         );
-        // Get the index of the embedding output
+        // Get the index of the embedding output parameter
         const embeddingParamIdx = signature.outputs.findIndex(param =>
             param.type === "float32" &&
             param.denotation === "embedding"
@@ -129,7 +130,7 @@ export class EmbeddingsService {
             // Check for error
             if (prediction.error)
                 throw new Error(prediction.error);
-            // Check embedding return type
+            // Check returned embedding
             const embeddingMatrix = prediction.results[embeddingParamIdx];
             if (!isTensor(embeddingMatrix))
                 throw new Error(`${tag} returned object of type ${typeof embeddingMatrix} instead of an embedding matrix`);

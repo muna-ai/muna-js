@@ -1,6 +1,8 @@
 ## 0.0.49
-+ Added `muna.beta.openai.embeddings.create` method for using text embedding predictors via the OpenAI API.
-+ Added `Parameter.denotation` for working with specialized data types (e.g. audio, embeddings).
++ Added `muna.beta.openai.embeddings.create` method for using text embedding predictors via the OpenAI client.
++ Added `muna.beta.openai.audio.speech.create` method for using text-to-speech predictors via the OpenAI client.
++ Added `Parameter.denotation` for inspecting the denotation of predictor parameters (e.g. audio, embeddings).
++ Added `Parameter.sampleRate` for inspecting the sample rate of predictor audio parameters.
 + Refactored `muna.beta.chat` OpenAI chat service to `muna.beta.openai.chat`.
 + Upgraded to Function C 0.0.38.
 

@@ -54,6 +54,10 @@ export interface Parameter {
      * This is only populated for `list` and `dict` parameters.
      */
     schema?: Record<string, any>;
+    /**
+     * Audio sample rate in Hertz.
+     */
+    sampleRate?: number;
 }
 
 /**
