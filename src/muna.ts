@@ -58,6 +58,6 @@ export class Muna {
         this.users = new UserService(this.client);
         this.predictors = new PredictorService(this.client);
         this.predictions = new PredictionService(this.client);
-        this.beta = new BetaClient(this.client, this.predictions);
+        this.beta = new BetaClient(this.client, this.predictors, this.predictions);
     }
 }

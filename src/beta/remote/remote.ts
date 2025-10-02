@@ -4,7 +4,6 @@
 */
 
 import { decode, encode } from "base64-arraybuffer"
-import parseDataURL from "data-urls"
 import { getFxnc, type FXNC } from "../../c"
 import type { MunaClient } from "../../client"
 import { BoolArray, isImage, isTensor, isTypedArray } from "../../types"
@@ -42,7 +41,7 @@ export class RemotePredictionService {
      * @returns Prediction.
      */
     public async create(input: CreateRemotePredictionInput): Promise<Prediction> {
-        const { tag, inputs, acceleration = "auto" } = input;
+        const { tag, inputs, acceleration = "remote_auto" } = input;
         const inputMap = Object.fromEntries(await Promise.all(Object
             .entries(inputs)
             .map(async ([name, object]) => [
@@ -208,7 +207,7 @@ export class RemotePredictionService {
 
     private async download(url: string): Promise<ArrayBuffer> {
         if (url.startsWith("data:"))
-            return (parseDataURL(url).body as Uint8Array).buffer
+            return decode(url.split(",")[1]);
         const response = await fetch(url);
         const buffer = await response.arrayBuffer();
         return buffer;

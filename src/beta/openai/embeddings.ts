@@ -3,11 +3,14 @@
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
-import type { CreatePredictionInput, PredictionService } from "../../services"
-import type { Acceleration, Prediction } from "../../types"
+import { encode } from "base64-arraybuffer"
+import type { CreatePredictionInput, PredictorService, PredictionService } from "../../services"
+import { isTensor } from "../../types"
+import type { Acceleration, ParameterDenotation, Prediction, Tensor, Value } from "../../types"
 import type { CreateRemotePredictionInput, RemoteAcceleration, RemotePredictionService } from "../remote"
+import type { CreateEmbeddingResponse, Embedding } from "./types"
 
-export interface EmbeddingsCreateParams {
+export interface EmbeddingCreateParams {
     /**
      * Input text to embed, encoded as a string or array of strings.
      */
@@ -31,14 +34,130 @@ export interface EmbeddingsCreateParams {
     acceleration?: Acceleration | RemoteAcceleration;
 }
 
+type PredictorEmbeddingDelegate = (params: EmbeddingCreateParams) => Promise<CreateEmbeddingResponse>;
+
 export class EmbeddingsService {
 
+    private readonly predictors: PredictorService;
     private readonly predictions: PredictionService;
     private readonly remotePredictions: RemotePredictionService;
+    private readonly cache: Map<string, PredictorEmbeddingDelegate>;
 
-    public constructor(predictions: PredictionService, remotePredictions: RemotePredictionService) {
+    public constructor(
+        predictors: PredictorService,
+        predictions: PredictionService,
+        remotePredictions: RemotePredictionService
+    ) {
+        this.predictors = predictors;
         this.predictions = predictions;
         this.remotePredictions = remotePredictions;
+        this.cache = new Map<string, PredictorEmbeddingDelegate>();
+    }
+
+    public async create(params: EmbeddingCreateParams): Promise<CreateEmbeddingResponse> {
+        // Ensure we have a delegate
+        const { model: tag, input, encoding_format = "float" } = params;
+        if (!this.cache.has(tag)) {
+            const delegate = await this.createEmbeddingDelegate(tag);
+            this.cache.set(tag, delegate);
+        }
+        // Make prediction
+        const delegate = this.cache.get(tag);
+        const response = await delegate({
+            ...params,
+            input: typeof input === "string" ? [input] : input,
+            encoding_format
+        });
+        // Return
+        return response;
+    }
+
+    private async createEmbeddingDelegate(tag: string): Promise<PredictorEmbeddingDelegate> {
+        // Retrieve predictor
+        const predictor = await this.predictors.retrieve({ tag });
+        const signature = predictor.signature;
+        // Check that there is only one required input paramete
+        if (signature.inputs.filter(param => !param.optional).length !== 1)
+            throw new Error(
+                `${tag} cannot be used with OpenAI embedding API because 
+                it has more than one required input parameters.`
+            );
+        // Check that the input parameter is `list[str]`
+        const inputParam = signature.inputs.find(param => param.type === "list");
+        if (!inputParam)
+            throw new Error(
+                `${tag} cannot be used with OpenAI embedding API because 
+                it does not have a valid text embedding input parameter.`
+            );
+        // Get the Matryoshka dim parameter (optional)
+        const matryoshkaParam = signature.inputs.find(param => 
+            param.type.includes("int") && 
+            param.denotation === "embedding.dims"
+        );
+        // Get the index of the embedding output
+        const embeddingParamIdx = signature.outputs.findIndex(param =>
+            param.type === "float32" &&
+            param.denotation === "embedding"
+        );
+        if (embeddingParamIdx < 0)
+            throw new Error(
+                `${tag} cannot be used with OpenAI embedding API because 
+                it has no outputs with an \`embedding\` denotation.`
+            );
+        // Get the index of the usage output (optional)
+        const usageParamIdx = signature.outputs.findIndex(param =>
+            param.type === "dict" &&
+            param.denotation === "openai.embedding.usage" as ParameterDenotation
+        );
+        // Define the delegate
+        const delegate = async ({
+            input,
+            dimensions,
+            encoding_format,
+            acceleration,
+        }: EmbeddingCreateParams): Promise<CreateEmbeddingResponse> => {
+            // Build prediction input map
+            const predictionInputs: Record<string, Value> = { [inputParam.name]: input };
+            if (dimensions != null && matryoshkaParam)
+                predictionInputs[matryoshkaParam.name] = dimensions;
+            // Create prediction
+            const prediction = await this.createPrediction({
+                tag,
+                inputs: predictionInputs,
+                acceleration
+            });
+            // Check for error
+            if (prediction.error)
+                throw new Error(prediction.error);
+            // Check embedding return type
+            const embeddingMatrix = prediction.results[embeddingParamIdx];
+            if (!isTensor(embeddingMatrix))
+                throw new Error(`${tag} returned object of type ${typeof embeddingMatrix} instead of an embedding matrix`);
+            if (!(embeddingMatrix.data instanceof Float32Array))
+                throw new Error(
+                    `${tag} returned embedding matrix with invalid data type: 
+                    ${embeddingMatrix.constructor.name.replace("Array", "").toLowerCase()}`
+                );
+            if (embeddingMatrix.shape.length !== 2)
+                throw new Error(`${tag} returned embedding matrix with invalid shape: ${embeddingMatrix.shape}`);
+            // Create embedding response
+            const usage = usageParamIdx ?
+                prediction.results[usageParamIdx] as CreateEmbeddingResponse.Usage :
+                { prompt_tokens: 0, total_tokens: 0 } satisfies CreateEmbeddingResponse.Usage;
+            const embeddings = Array
+                .from({ length: embeddingMatrix.shape[0] }, (_, i) => i)
+                .map(idx => this.parseEmbedding(embeddingMatrix, idx, encoding_format));
+            const response = {
+                object: "list",
+                model: tag,
+                data: embeddings,
+                usage
+            } satisfies CreateEmbeddingResponse;
+            // Return
+            return response;
+        };
+        // Return
+        return delegate;
     }
 
     private createPrediction(input: CreatePredictionInput | CreateRemotePredictionInput): Promise<Prediction> {
@@ -48,5 +167,16 @@ export class EmbeddingsService {
         // muna.predictions.create(...)
         else
             return this.predictions.create(input as CreatePredictionInput);
+    }
+
+    private parseEmbedding(matrix: Tensor, index: number, encoding: "float" | "base64"): Embedding {
+        const [_, length] = matrix.shape;
+        const data = matrix.data as Float32Array;
+        const startIdx = index * length;
+        const endIdx = (index + 1) * length;
+        const embedding = encoding === "base64" ?
+            encode(data.slice(startIdx, endIdx).buffer) :
+            Array.from(data.subarray(startIdx, endIdx));
+        return { object: "embedding", embedding, index };
     }
 }

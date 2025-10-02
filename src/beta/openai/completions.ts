@@ -3,7 +3,7 @@
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
-import type { CreatePredictionInput, PredictionService } from "../../services"
+import type { CreatePredictionInput, PredictionService, PredictorService } from "../../services"
 import type { Acceleration, Prediction } from "../../types"
 import type { CreateRemotePredictionInput, RemoteAcceleration, RemotePredictionService } from "../remote"
 import type { ChatCompletion, ChatCompletionChunk, ChatCompletionMessage } from "./types"
@@ -48,10 +48,16 @@ export type ChatCompletionCreateParams = (
 
 export class ChatCompletionsService {
 
+    private readonly predictors: PredictorService;
     private readonly predictions: PredictionService;
     private readonly remotePredictions: RemotePredictionService;
 
-    public constructor(predictions: PredictionService, remotePredictions: RemotePredictionService) {
+    public constructor(
+        predictors: PredictorService,
+        predictions: PredictionService,
+        remotePredictions: RemotePredictionService
+    ) {
+        this.predictors = predictors;
         this.predictions = predictions;
         this.remotePredictions = remotePredictions;
     }

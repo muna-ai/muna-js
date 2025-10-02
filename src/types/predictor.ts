@@ -3,8 +3,8 @@
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
+import type { Dtype } from "./dtype"
 import type { User } from "./user"
-import type { Dtype } from "./value"
 
 /**
  * Predictor access mode.
@@ -81,6 +81,8 @@ export interface Signature {
     outputs: Parameter[];
 }
 
+export type ParameterDenotation = "audio" | "embedding" | "embedding.dims";
+
 /**
  * Prediction parameter.
  * This describes a value that is consumed or produced by a predictor.
@@ -100,9 +102,9 @@ export interface Parameter {
      */
     description?: string;
     /**
-     * Parameter modality for specialized data types.
+     * Parameter denotation for specialized data types.
      */
-    modality?: string;
+    denotation?: ParameterDenotation;
     /**
      * Parameter is optional.
      */

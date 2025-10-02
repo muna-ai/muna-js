@@ -8,8 +8,8 @@ import chaiAsPromised from "chai-as-promised"
 import mocha from "@testdeck/mocha"
 import { Muna } from "../src"
 
-@mocha.suite("Chat Completions")
-class ChatTest {
+@mocha.suite("OpenAI Client")
+class OpenAITest {
 
     private muna: Muna;
 
@@ -21,7 +21,8 @@ class ChatTest {
 
     @mocha.test
     async "Should create a chat completion"() {
-        const stream = await this.muna.beta.chat.completions.create({
+        const openai = this.muna.beta.openai
+        const stream = await openai.chat.completions.create({
             model: "@yusuf/llama-stream",
             messages: [
                 { role: "user", content: "What is the capital of France?" }

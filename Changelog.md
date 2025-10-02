@@ -1,7 +1,6 @@
-## 0.0.50
-+ Added `Parameter.modality` for working with specialized data types (e.g. audio, embeddings).
-
 ## 0.0.49
++ Added `muna.beta.openai.embeddings.create` method for using text embedding predictors via the OpenAI API.
++ Added `Parameter.denotation` for working with specialized data types (e.g. audio, embeddings).
 + Refactored `muna.beta.chat` OpenAI chat service to `muna.beta.openai.chat`.
 + Upgraded to Function C 0.0.38.
 
