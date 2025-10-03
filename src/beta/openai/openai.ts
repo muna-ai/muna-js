@@ -7,7 +7,7 @@ import type { PredictorService, PredictionService } from "../../services"
 import type { RemotePredictionService } from "../remote"
 import { AudioService } from "./audio"
 import { ChatService } from "./chat"
-import { EmbeddingsService } from "./embeddings"
+import { EmbeddingService } from "./embedding"
 
 export class OpenAIClient {
 
@@ -19,7 +19,7 @@ export class OpenAIClient {
     /**
      * Create embedding vectors.
      */
-    public readonly embeddings: EmbeddingsService;
+    public readonly embeddings: EmbeddingService;
 
     /**
      * Create speech.
@@ -32,7 +32,7 @@ export class OpenAIClient {
         remotePredictions: RemotePredictionService
     ) {
         this.chat = new ChatService(predictors, predictions, remotePredictions);
-        this.embeddings = new EmbeddingsService(predictors, predictions, remotePredictions);
+        this.embeddings = new EmbeddingService(predictors, predictions, remotePredictions);
         this.audio = new AudioService(predictors, predictions, remotePredictions);
     }
 }

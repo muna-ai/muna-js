@@ -5,20 +5,20 @@
 
 import type { PredictionService, PredictorService } from "../../services"
 import type { RemotePredictionService } from "../remote"
-import { ChatCompletionsService } from "./completions"
+import { ChatCompletionService } from "./completion"
 
 export class ChatService {
 
     /**
      * Create completions.
      */
-    public readonly completions: ChatCompletionsService;
+    public readonly completions: ChatCompletionService;
 
     public constructor(
         predictors: PredictorService,
         predictions: PredictionService,
         remotePredictions: RemotePredictionService
     ) {
-        this.completions = new ChatCompletionsService(predictors, predictions, remotePredictions);
+        this.completions = new ChatCompletionService(predictors, predictions, remotePredictions);
     }
 }

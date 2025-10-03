@@ -46,7 +46,7 @@ export type ChatCompletionCreateParams = (
     ChatCompletionCreateParamsStreaming
 );
 
-export class ChatCompletionsService {
+export class ChatCompletionService {
 
     private readonly predictors: PredictorService;
     private readonly predictions: PredictionService;

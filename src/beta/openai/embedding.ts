@@ -36,7 +36,7 @@ export interface EmbeddingCreateParams {
 
 type EmbeddingDelegate = (params: EmbeddingCreateParams) => Promise<CreateEmbeddingResponse>;
 
-export class EmbeddingsService {
+export class EmbeddingService {
 
     private readonly predictors: PredictorService;
     private readonly predictions: PredictionService;
