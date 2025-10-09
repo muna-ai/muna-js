@@ -46,7 +46,7 @@ export class RemotePredictionService {
             .entries(inputs)
             .map(async ([name, object]) => [
                 name,
-                await this.toValue({ name, object })
+                await this.toValue({ object })
             ] satisfies [string, RemoteValue])
         ));
         this.fxnc ??= await getFxnc();
@@ -63,7 +63,7 @@ export class RemotePredictionService {
     }
 
     private async toValue(input: ToValueInput): Promise<RemoteValue> {
-        const { object, name, maxDataUrlSize } = input;
+        const { object } = input;
         if (object === null)
             return { data: null, type: "null" };
         if (typeof(object) === "number") {
@@ -83,32 +83,32 @@ export class RemotePredictionService {
         }
         if (isTensor(object)) {
             const { data: { buffer }, shape } = object;
-            const data = await this.upload({ buffer, name, maxDataUrlSize });
+            const data = await this.upload({ buffer: buffer as ArrayBuffer });
             const type = getTypedArrayDtype(object.data);
             return { data, type, shape };
         }
         if (typeof(object) === "string") {
             const buffer = new TextEncoder().encode(object).buffer;
-            const data = await this.upload({ buffer, name, mime: "text/plain", maxDataUrlSize });
+            const data = await this.upload({ buffer, mime: "text/plain" });
             return { data, type: "string" };
         }
         if (Array.isArray(object)) {
             const listStr = JSON.stringify(object);
             const buffer = new TextEncoder().encode(listStr).buffer;
-            const data = await this.upload({ buffer, name, mime: "application/json", maxDataUrlSize });
+            const data = await this.upload({ buffer, mime: "application/json" });
             return { data, type: "list" };
         }
         if (isImage(object)) { // INCOMPLETE
             throw new Error("Failed to serialize image because it is not yet supported");
         }
         if (object instanceof ArrayBuffer) {
-            const data = await this.upload({ buffer: object, name, maxDataUrlSize });
+            const data = await this.upload({ buffer: object });
             return { data, type: "binary" };
         }
         if (typeof(object) === "object") {
             const dictStr = JSON.stringify(object);
             const buffer = new TextEncoder().encode(dictStr).buffer;
-            const data = await this.upload({ buffer, name, mime: "application/json", maxDataUrlSize });
+            const data = await this.upload({ buffer, mime: "application/json" });
             return { data, type: "dict" };
         }
         throw new Error(`Failed to serialize value '${object}' of type \`${typeof(object)}\` because it is not supported`);
@@ -179,30 +179,9 @@ export class RemotePredictionService {
 
     private async upload({
         buffer,
-        name,
-        mime = "application/octet-stream",
-        maxDataUrlSize = 4 * 1024 * 1024
+        mime = "application/octet-stream"
     }: UploadInput): Promise<string> {
-        if (buffer.byteLength < maxDataUrlSize)
-            return `data:${mime};base64,${encode(buffer)}`;
-        const value = await this.client.request<CreateValueResponse>({
-            path: "/values",
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: { name }
-        });
-        const response = await fetch(value.uploadUrl, {
-            method: "PUT",
-            headers: {
-                "Content-Type": mime,
-                "Content-Length": buffer.byteLength.toString()
-            },
-            body: buffer
-        });
-        const responseStr = await response.text();
-        if (!response.ok)
-            throw new Error(`Failed to upload value with status ${response.status} and error: ${responseStr}`);
-        return value.downloadUrl;
+        return `data:${mime};base64,${encode(buffer)}`;
     }
 
     private async download(url: string): Promise<ArrayBuffer> {
@@ -222,15 +201,11 @@ interface RemoteValue {
 
 interface ToValueInput {
     object: Value;
-    name: string;
-    maxDataUrlSize?: number;
 }
 
 interface UploadInput {
     buffer: ArrayBuffer;
-    name: string;
     mime?: string;
-    maxDataUrlSize?: number;
 }
 
 interface CreateValueResponse {
