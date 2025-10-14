@@ -58,7 +58,7 @@ export class EmbeddingService {
         // Ensure we have a delegate
         const { model: tag, input, encoding_format = "float", acceleration = "auto" } = params;
         if (!this.cache.has(tag)) {
-            const delegate = await this.createEmbeddingDelegate(tag);
+            const delegate = await this.createDelegate(tag);
             this.cache.set(tag, delegate);
         }
         // Make prediction
@@ -73,11 +73,17 @@ export class EmbeddingService {
         return response;
     }
 
-    private async createEmbeddingDelegate(tag: string): Promise<EmbeddingDelegate> {
+    private async createDelegate(tag: string): Promise<EmbeddingDelegate> {
         // Retrieve predictor
         const predictor = await this.predictors.retrieve({ tag });
-        const signature = predictor.signature;
+        if (!predictor)
+            throw new Error(
+                `${tag} cannot be used with OpenAI embedding API because 
+                the predictor could not be found. Check that your access key 
+                is valid and that you have access to the predictor.`
+            );
         // Check that there is only one required input paramete
+        const signature = predictor.signature;
         if (signature.inputs.filter(param => !param.optional).length !== 1)
             throw new Error(
                 `${tag} cannot be used with OpenAI embedding API because 

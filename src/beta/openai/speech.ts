@@ -73,7 +73,7 @@ export class SpeechService {
             acceleration = "auto"
         } = params;
         if (!this.cache.has(tag)) {
-            const delegate = await this.createSpeechDelegate(tag);
+            const delegate = await this.createDelegate(tag);
             this.cache.set(tag, delegate);
         }
         // Make prediction
@@ -89,11 +89,17 @@ export class SpeechService {
         return response;
     }
 
-    private async createSpeechDelegate(tag: string): Promise<SpeechDelegate> {
+    private async createDelegate(tag: string): Promise<SpeechDelegate> {
         // Retrieve predictor
         const predictor = await this.predictors.retrieve({ tag });
-        const signature = predictor.signature;
+        if (!predictor)
+            throw new Error(
+                `${tag} cannot be used with OpenAI speech API because 
+                the predictor could not be found. Check that your access key 
+                is valid and that you have access to the predictor.`
+            );
         // Get required inputs
+        const signature = predictor.signature;
         const requiredInputParams = signature.inputs.filter(param => !param.optional);
         if (requiredInputParams.length !== 2)
             throw new Error(
