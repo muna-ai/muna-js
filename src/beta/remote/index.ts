@@ -5,3 +5,4 @@
 
 export * from "./prediction"
 export * from "./remote"
+export * from "./types"

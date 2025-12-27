@@ -154,7 +154,7 @@ export class PredictionService {
             return predictor;
         } finally {
             configuration?.dispose();
-        }   
+        }
     }
     
     private toValue(value: Value): FXNValue {
@@ -221,11 +221,11 @@ export class PredictionService {
 
     private toAccelerationConstant(acceleration: Acceleration): number {
         switch (acceleration) {
-            case "auto":    return 0;
-            case "cpu":     return 1;
-            case "gpu":     return 2;
-            case "npu":     return 4;
-            default:        return 0;
+            case "local_auto":  return 0;
+            case "local_cpu":   return 1;
+            case "local_gpu":   return 2;
+            case "local_npu":   return 4;
+            default:            return 0;
         }
     }
 }

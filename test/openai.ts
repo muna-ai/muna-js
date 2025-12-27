@@ -1,6 +1,6 @@
 /*
 *   Muna
-*   Copyright © 2025 NatML Inc. All Rights Reserved.
+*   Copyright © 2026 NatML Inc. All Rights Reserved.
 */
 
 import { expect, should, use } from "chai"
@@ -27,7 +27,8 @@ class OpenAITest {
             messages: [
                 { role: "user", content: "What is the capital of France?" }
             ],
-            stream: true
+            stream: true,
+            acceleration: "local_auto"
         });
         for await (const chunk of stream) {
             expect(chunk).to.not.be.null;
@@ -39,7 +40,8 @@ class OpenAITest {
         const openai = this.muna.beta.openai;
         const response = await openai.embeddings.create({
             model: "@google/embedding-gemma",
-            input: "What is the capital of France?"
+            input: "What is the capital of France?",
+            acceleration: "local_auto"
         });
         expect(response.object).to.equal("list");
         expect(response.data).to.not.be.empty;

@@ -24,8 +24,5 @@ export type Dtype =
     "list"      |
     "dict"      |
     "image"     |
-    "audio"     |
-    "video"     |
-    "model"     |
     "binary"    |
     "null";

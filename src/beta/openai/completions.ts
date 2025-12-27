@@ -1,6 +1,6 @@
 /*
 *   Muna
-*   Copyright © 2025 NatML Inc. All Rights Reserved.
+*   Copyright © 2026 NatML Inc. All Rights Reserved.
 */
 
 import type { CreatePredictionInput, PredictionService, PredictorService } from "../../services"
@@ -69,7 +69,7 @@ export class ChatCompletionService {
     public create(body: ChatCompletionCreateParamsStreaming): AsyncGenerator<ChatCompletionChunk>;
     public create(body: ChatCompletionCreateParamsBase): Promise<ChatCompletion> | AsyncGenerator<ChatCompletionChunk>;
     public create(body: ChatCompletionCreateParams): Promise<ChatCompletion> | AsyncGenerator<ChatCompletionChunk> {
-        const { model: tag, acceleration = "auto", ...inputs } = body;
+        const { model: tag, acceleration = "remote_auto", ...inputs } = body;
         inputs.stream = inputs.stream ?? false;
         const input = { tag, inputs, acceleration };
         if (inputs.stream)

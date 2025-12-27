@@ -1,3 +1,8 @@
+## 0.0.51
++ Refactored `Acceleration` constants to use a `local_` prefix.
++ Removed `ParameterDenotation` type.
++ Upgraded to Function C 0.0.39.
+
 ## 0.0.50
 + Added `muna.beta.openai.embeddings.create` method for using text embedding predictors via the OpenAI client.
 + Added `muna.beta.openai.audio.speech.create` method for using text-to-speech predictors via the OpenAI client.

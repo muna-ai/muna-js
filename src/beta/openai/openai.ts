@@ -1,13 +1,13 @@
 /*
 *   Muna
-*   Copyright © 2025 NatML Inc. All Rights Reserved.
+*   Copyright © 2026 NatML Inc. All Rights Reserved.
 */
 
 import type { PredictorService, PredictionService } from "../../services"
 import type { RemotePredictionService } from "../remote"
 import { AudioService } from "./audio"
 import { ChatService } from "./chat"
-import { EmbeddingService } from "./embedding"
+import { EmbeddingService } from "./embeddings"
 
 export class OpenAIClient {
 

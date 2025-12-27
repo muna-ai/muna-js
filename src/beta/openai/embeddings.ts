@@ -1,12 +1,12 @@
 /*
 *   Muna
-*   Copyright © 2025 NatML Inc. All Rights Reserved.
+*   Copyright © 2026 NatML Inc. All Rights Reserved.
 */
 
 import { encode } from "base64-arraybuffer"
 import type { CreatePredictionInput, PredictorService, PredictionService } from "../../services"
 import { isTensor } from "../../types"
-import type { Acceleration, ParameterDenotation, Prediction, Tensor, Value } from "../../types"
+import type { Acceleration, Prediction, Tensor, Value } from "../../types"
 import type { CreateRemotePredictionInput, RemoteAcceleration, RemotePredictionService } from "../remote"
 import type { CreateEmbeddingResponse, Embedding } from "./types"
 
@@ -34,7 +34,7 @@ export interface EmbeddingCreateParams {
     acceleration?: Acceleration | RemoteAcceleration;
 }
 
-type EmbeddingDelegate = (params: EmbeddingCreateParams) => Promise<CreateEmbeddingResponse>;
+type EmbeddingDelegate = (params: Omit<EmbeddingCreateParams, "model">) => Promise<CreateEmbeddingResponse>;
 
 export class EmbeddingService {
 
@@ -54,9 +54,13 @@ export class EmbeddingService {
         this.cache = new Map<string, EmbeddingDelegate>();
     }
 
-    public async create(params: EmbeddingCreateParams): Promise<CreateEmbeddingResponse> {
+    public async create({
+        model: tag,
+        input,
+        encoding_format = "float",
+        acceleration = "remote_auto"
+    }: EmbeddingCreateParams): Promise<CreateEmbeddingResponse> {
         // Ensure we have a delegate
-        const { model: tag, input, encoding_format = "float", acceleration = "auto" } = params;
         if (!this.cache.has(tag)) {
             const delegate = await this.createDelegate(tag);
             this.cache.set(tag, delegate);
@@ -64,7 +68,6 @@ export class EmbeddingService {
         // Make prediction
         const delegate = this.cache.get(tag);
         const response = await delegate({
-            ...params,
             input: typeof input === "string" ? [input] : input,
             encoding_format,
             acceleration
@@ -114,7 +117,7 @@ export class EmbeddingService {
         // Get the index of the usage output (optional)
         const usageParamIdx = signature.outputs.findIndex(param =>
             param.type === "dict" &&
-            param.denotation === "openai.embedding.usage" as ParameterDenotation
+            param.denotation === "openai.embedding.usage"
         );
         // Define the delegate
         const delegate = async ({
@@ -122,7 +125,7 @@ export class EmbeddingService {
             dimensions,
             encoding_format,
             acceleration,
-        }: EmbeddingCreateParams): Promise<CreateEmbeddingResponse> => {
+        }: Omit<EmbeddingCreateParams, "model">): Promise<CreateEmbeddingResponse> => {
             // Build prediction input map
             const predictionInputs: Record<string, Value> = { [inputParam.name]: input };
             if (dimensions != null && matryoshkaParam)

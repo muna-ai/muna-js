@@ -15,6 +15,7 @@
         "--colors",
         "--recursive"
       ],
+      "outputCapture": "std",
       "internalConsoleOptions": "openOnSessionStart",
       "env": {
         "TS_NODE_PROJECT": "tsconfig.test.json",

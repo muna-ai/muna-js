@@ -22,10 +22,9 @@ export interface SpeechCreateParams {
      */
     voice: string;
     /**
-     * The format to audio in.
-     * Unlike the OpenAI client, only `pcm` is supported.
+     * The format to return audio in.
      */
-    response_format?: "pcm";
+    response_format?: "aac" | "flac" | "opus" | "pcm" | "wav";
     /**
      * The speed of the generated audio.
      * Defaults to 1.0. 
@@ -42,7 +41,7 @@ export interface SpeechCreateParams {
     acceleration?: Acceleration | RemoteAcceleration;
 }
 
-type SpeechDelegate = (params: SpeechCreateParams) => Promise<Response>;
+type SpeechDelegate = (params: Omit<SpeechCreateParams, "model">) => Promise<Response>;
 
 export class SpeechService {
 
@@ -62,16 +61,16 @@ export class SpeechService {
         this.cache = new Map<string, SpeechDelegate>();
     }
 
-    public async create(params: SpeechCreateParams): Promise<Response> {
+    public async create({
+        model: tag,
+        input,
+        voice,
+        response_format = "aac",
+        speed = 1.0,
+        stream_format = "audio",
+        acceleration = "remote_auto"
+    }: SpeechCreateParams): Promise<Response> {
         // Ensure we have a delegate
-        const {
-            model: tag,
-            input,
-            response_format = "pcm",
-            speed = 1.0,
-            stream_format = "audio",
-            acceleration = "auto"
-        } = params;
         if (!this.cache.has(tag)) {
             const delegate = await this.createDelegate(tag);
             this.cache.set(tag, delegate);
@@ -79,7 +78,8 @@ export class SpeechService {
         // Make prediction
         const delegate = this.cache.get(tag);
         const response = await delegate({
-            ...params,
+            input,
+            voice,
             response_format,
             speed,
             stream_format,
@@ -145,7 +145,7 @@ export class SpeechService {
             voice,
             speed,
             acceleration
-        }: SpeechCreateParams): Promise<Response> => {
+        }: Omit<SpeechCreateParams, "model">): Promise<Response> => {
             // Build prediction input map
             const predictionInputs: Record<string, Value> = {
                 [inputParam.name]: input,

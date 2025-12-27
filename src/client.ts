@@ -3,6 +3,7 @@
 *   Copyright © 2025 NatML Inc. All Rights Reserved.
 */
 
+import { stream } from "fetch-event-stream"
 import type { MunaConfig } from "./muna"
 
 export interface RequestInput {
@@ -51,7 +52,7 @@ export class MunaClient {
     }
 
     /**
-     * Make a request.
+     * Make a request to a REST endpoint.
      */
     public async request<T = any>({
         path,
@@ -59,14 +60,11 @@ export class MunaClient {
         headers,
         body
     }: RequestInput): Promise<T> {
-        const response = await fetch(
-            `${this.url}${path}`,
-            {
-                method,
-                headers: { ...headers, "Authorization": this.auth },
-                body: body ? JSON.stringify(body) : undefined
-            }
-        );
+        const response = await fetch(`${this.url}${path}`, {
+            method,
+            headers: { ...headers, "Authorization": this.auth },
+            body: body ? JSON.stringify(body) : undefined
+        });
         const payload = await response.json();
         if (!response.ok)
             throw new MunaAPIError(
@@ -74,6 +72,24 @@ export class MunaClient {
                 response.status
             );
         return payload;
+    }
+
+    /**
+     * Make a request to a REST endpoint and consume the response as a server-sent events stream.
+     */
+    public async * stream<T = any>({
+        path,
+        method = "GET",
+        headers,
+        body
+    }: RequestInput): AsyncGenerator<T> {
+        const response = await stream(`${this.url}${path}`, {
+            method,
+            headers: { ...headers, "Authorization": this.auth },
+            body: body ? JSON.stringify(body) : undefined
+        });
+        for await (const { event, data } of response)
+            yield JSON.parse(data);
     }
 }
 

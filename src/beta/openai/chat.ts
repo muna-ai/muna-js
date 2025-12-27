@@ -1,11 +1,11 @@
 /*
 *   Muna
-*   Copyright © 2025 NatML Inc. All Rights Reserved.
+*   Copyright © 2026 NatML Inc. All Rights Reserved.
 */
 
 import type { PredictionService, PredictorService } from "../../services"
 import type { RemotePredictionService } from "../remote"
-import { ChatCompletionService } from "./completion"
+import { ChatCompletionService } from "./completions"
 
 export class ChatService {
 

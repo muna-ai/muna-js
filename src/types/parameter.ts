@@ -6,16 +6,6 @@
 import type { Dtype } from "./dtype"
 
 /**
- * Parameter denotation.
- */
-export type ParameterDenotation = 
-    "audio"             |
-    "audio.speed"       |
-    "audio.voice"       |
-    "embedding"         |
-    "embedding.dims";
-
-/**
  * Prediction parameter.
  * This describes a value that is consumed or produced by a predictor.
  */
@@ -36,7 +26,7 @@ export interface Parameter {
     /**
      * Parameter denotation for specialized data types.
      */
-    denotation?: ParameterDenotation;
+    denotation?: string;
     /**
      * Parameter is optional.
      */

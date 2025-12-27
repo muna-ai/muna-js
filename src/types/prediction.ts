@@ -8,7 +8,7 @@ import type { Value } from "./value"
 /**
  * Prediction acceleration.
  */
-export type Acceleration = "auto" | "cpu" | "gpu" | "npu";
+export type Acceleration = "local_auto" | "local_cpu" | "local_gpu" | "local_npu";
 
 /**
  * Prediction.

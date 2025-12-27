@@ -1,6 +1,6 @@
 /*
 *   Muna
-*   Copyright © 2025 NatML Inc. All Rights Reserved.
+*   Copyright © 2026 NatML Inc. All Rights Reserved.
 */
 
 import { expect, should, use } from "chai"
@@ -29,11 +29,11 @@ class PredictionTest {
         expect(results).to.not.be.empty;
     }
 
-    @mocha.test.skip
+    @mocha.test
     async "Should stream a prediction"() {
-        const sentence = "Hello world";
+        const sentence = "The fat cat sat on the mat.";
         const stream = await this.muna.predictions.stream({
-            tag: "@yusuf/streaming",
+            tag: "@yusuf/generator",
             inputs: { sentence }
         });
         const predictions: Prediction[] = [];

@@ -24,6 +24,7 @@ declare global {
         readonly data: ArrayBuffer | null;
         readonly type: Dtype;
         readonly shape: number[] | null;
+        serialize(mime?: string): ArrayBuffer;
         toObject(): number | string | boolean | Tensor | Image | any[] | Record<string, any> | ArrayBuffer;
         dispose(): void;
         static createArray(data: TypedArray, shape: number[] | null, flags: number): FXNValue;
@@ -33,6 +34,7 @@ declare global {
         static createImage(image: Image, flags: number): FXNValue;
         static createBinary(data: ArrayBuffer, flags: number): FXNValue;
         static createNull(): FXNValue;
+        static createFromBuffer(data: ArrayBuffer, mime: string): FXNValue;
     }
 
     class FXNValueMap {
