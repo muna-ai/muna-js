@@ -32,10 +32,8 @@ export async function getFxnc(input?: GetFxncInput): Promise<FXNC> {
 }
 
 function createWasmFxnc(input?: GetFxncInput): Promise<FXNC> {
-    const {
-        version = "0.0.39",
-        url = `https://cdn.fxn.ai/fxnc/${version}`
-    } = input ?? { };
+    const version = input?.version ?? "0.0.39";
+    const url = input?.url ?? `https://cdn.fxn.ai/fxnc/${version}`;
     return new Promise<FXNC>((resolve, reject) => {
         const script = document.createElement("script");
         script.src = `${url}/Function.js`;

@@ -102,7 +102,7 @@ export class EmbeddingService {
         // Get the Matryoshka dim parameter (optional)
         const matryoshkaParam = signature.inputs.find(param => 
             param.type.includes("int") && 
-            param.denotation === "embedding.dims"
+            param.denotation === "openai.embeddings.dims"
         );
         // Get the index of the embedding output parameter
         const embeddingParamIdx = signature.outputs.findIndex(param =>
@@ -115,10 +115,7 @@ export class EmbeddingService {
                 it has no outputs with an \`embedding\` denotation.`
             );
         // Get the index of the usage output (optional)
-        const usageParamIdx = signature.outputs.findIndex(param =>
-            param.type === "dict" &&
-            param.denotation === "openai.embedding.usage"
-        );
+        const usageParamIdx = -1; // INCOMPLETE
         // Define the delegate
         const delegate = async ({
             input,
@@ -151,7 +148,7 @@ export class EmbeddingService {
             if (embeddingMatrix.shape.length !== 2)
                 throw new Error(`${tag} returned embedding matrix with invalid shape: ${embeddingMatrix.shape}`);
             // Create embedding response
-            const usage = usageParamIdx ?
+            const usage = usageParamIdx >= 0 ?
                 prediction.results[usageParamIdx] as CreateEmbeddingResponse.Usage :
                 { prompt_tokens: 0, total_tokens: 0 } satisfies CreateEmbeddingResponse.Usage;
             const embeddings = Array
@@ -171,10 +168,8 @@ export class EmbeddingService {
     }
 
     private createPrediction(input: CreatePredictionInput | CreateRemotePredictionInput): Promise<Prediction> {
-        // muna.beta.predictions.remote.create(...)
         if ((input.acceleration as string).startsWith("remote_"))
             return this.remotePredictions.create(input as CreateRemotePredictionInput);
-        // muna.predictions.create(...)
         else
             return this.predictions.create(input as CreatePredictionInput);
     }

@@ -3,10 +3,14 @@
 *   Copyright © 2026 NatML Inc. All Rights Reserved.
 */
 
+import { getFxnc } from "../../c"
 import type { CreatePredictionInput, PredictorService, PredictionService } from "../../services"
-import { isTensor } from "../../types"
+import { isTensor, type Tensor } from "../../types"
 import type { Acceleration, Prediction, Value } from "../../types"
 import type { CreateRemotePredictionInput, RemoteAcceleration, RemotePredictionService } from "../remote"
+
+export type SpeechResponseFormat = "aac" | "flac" | "mp3" | "opus" | "pcm" | "wav";
+export type SpeechStreamFormat = "audio" | "sse";
 
 export interface SpeechCreateParams {
     /**
@@ -24,7 +28,7 @@ export interface SpeechCreateParams {
     /**
      * The format to return audio in.
      */
-    response_format?: "aac" | "flac" | "opus" | "pcm" | "wav";
+    response_format?: SpeechResponseFormat;
     /**
      * The speed of the generated audio.
      * Defaults to 1.0. 
@@ -32,9 +36,8 @@ export interface SpeechCreateParams {
     speed?: number;
     /**
      * The format to stream the audio in.
-     * Unlike the OpenAI client, only `audio` is supported.
      */
-    stream_format?: "audio";
+    stream_format?: SpeechStreamFormat;
     /**
      * Prediction acceleration.
      */
@@ -65,7 +68,7 @@ export class SpeechService {
         model: tag,
         input,
         voice,
-        response_format = "aac",
+        response_format = "mp3",
         speed = 1.0,
         stream_format = "audio",
         acceleration = "remote_auto"
@@ -116,7 +119,7 @@ export class SpeechService {
         // Get the voice input parameter
         const voiceParam = requiredInputParams.find(param =>
             param.type === "string" &&
-            param.denotation === "audio.voice"
+            param.denotation === "openai.audio.speech.voice"
         );
         if (!voiceParam)
             throw new Error(
@@ -126,7 +129,7 @@ export class SpeechService {
         // Get the speed input parameter (optional)
         const speedParam = signature.inputs.find(param =>
             ["float32", "float64"].includes(param.type) &&
-            param.denotation === "audio.speed"
+            param.denotation === "openai.audio.speech.speed"
         );
         // Get the index of the audio output parameter
         const audioParamIdx = signature.outputs.findIndex(param =>
@@ -144,8 +147,22 @@ export class SpeechService {
             input,
             voice,
             speed,
-            acceleration
+            acceleration,
+            response_format,
+            stream_format
         }: Omit<SpeechCreateParams, "model">): Promise<Response> => {
+            // Check response format
+            if (response_format === "mp3")
+                throw new Error(
+                    `Cannot create speech with response format \`${response_format}\` 
+                    because it is not yet supported.`
+                );
+            // Check stream format
+            if (stream_format !== "audio")
+                throw new Error(
+                    `Cannot create speech with stream format \`${stream_format}\` 
+                    because only \`audio\` is currently supported.`
+                );
             // Build prediction input map
             const predictionInputs: Record<string, Value> = {
                 [inputParam.name]: input,
@@ -163,24 +180,28 @@ export class SpeechService {
             if (prediction.error)
                 throw new Error(prediction.error);
             // Check returned audio
-            const audioTensor = prediction.results[audioParamIdx];
-            if (!isTensor(audioTensor))
-                throw new Error(`${tag} returned object of type ${typeof audioTensor} instead of an audio tensor`);
-            if (!(audioTensor.data instanceof Float32Array))
+            const audio = prediction.results[audioParamIdx];
+            if (!isTensor(audio))
+                throw new Error(`${tag} returned object of type ${typeof audio} instead of an audio tensor`);
+            if (!(audio.data instanceof Float32Array))
                 throw new Error(
                     `${tag} returned audio tensor with invalid data type: 
-                    ${audioTensor.constructor.name.replace("Array", "").toLowerCase()}`
+                    ${audio.constructor.name.replace("Array", "").toLowerCase()}`
                 );
-            if (![1, 2].includes(audioTensor.shape.length))
-                throw new Error(`${tag} returned audio tensor with invalid shape: ${audioTensor.shape}`);
+            if (![1, 2].includes(audio.shape.length))
+                throw new Error(`${tag} returned audio tensor with invalid shape: ${audio.shape}`);
             // Create response
-            const channels = audioTensor.shape.length == 2 ? audioTensor.shape[0] : 1; // Assume planar
-            const response = new Response(audioTensor.data.buffer as ArrayBuffer, {
+            const { content, contentType } = await this.createResponseData({
+                audio,
+                sampleRate: audioParam.sampleRate,
+                responseFormat: response_format
+            });
+            const response = new Response(content, {
                 status: 200,
                 statusText: "OK",
                 headers: {
-                    'Content-Type': `audio/pcm;rate=${audioParam.sampleRate};channels=${channels}`,
-                    "Content-Length": `${audioTensor.data.buffer.byteLength}`
+                    "Content-Type": contentType,
+                    "Content-Length": `${content.byteLength}`
                 }
             });
             // Return
@@ -191,11 +212,34 @@ export class SpeechService {
     }
 
     private createPrediction(input: CreatePredictionInput | CreateRemotePredictionInput): Promise<Prediction> {
-        // muna.beta.predictions.remote.create(...)
         if ((input.acceleration as string).startsWith("remote_"))
             return this.remotePredictions.create(input as CreateRemotePredictionInput);
-        // muna.predictions.create(...)
         else
             return this.predictions.create(input as CreatePredictionInput);
+    }
+
+    private async createResponseData({
+        audio,
+        sampleRate,
+        responseFormat
+    }: { audio: Tensor, sampleRate: number, responseFormat: SpeechResponseFormat }) {
+        const channels = audio.shape.length == 2 ? audio.shape[1] : 1;
+        if (responseFormat === "pcm") {
+            const contentType = [
+                `audio/pcm`,
+                `rate=${sampleRate}`,
+                `channels=${channels}`,
+                `encoding=float`,
+                `bits=32`
+            ].join(";");
+            const content = audio.data.buffer as ArrayBuffer;
+            return { content, contentType };
+        }
+        const { FXNValue } = await getFxnc();
+        const audioValue = FXNValue.createArray(audio.data, audio.shape, 0);
+        const contentType = `audio/${responseFormat};rate=${sampleRate}`;
+        const content = audioValue.serialize(contentType);
+        audioValue.dispose();
+        return { content, contentType };
     }
 }

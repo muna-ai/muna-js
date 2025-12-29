@@ -148,7 +148,7 @@ export interface ChatCompletionMessage {
     /**
      * The role of the author of this message.
      */
-    role: "assistant" | "user" | "system";
+    role: "assistant" | "user" | "system" | "developer" | "tool";
     /**
      * The contents of the message.
      */
@@ -207,4 +207,72 @@ export namespace CreateEmbeddingResponse {
          */
         total_tokens: number;
     }
+}
+
+export interface Transcription {
+    /**
+     * Transcribed text.
+     */
+    text: string;
+    /**
+     * Token usage statistics for the request.
+     */
+    usage: Transcription.Usage;
+}
+
+export namespace Transcription {
+
+    /**
+     * Usage statistics for models that track token usage.
+     */
+    export interface TokenUsage {
+        /**
+         * Usage type. Always `tokens`.
+         */
+        type: "tokens";
+        /**
+         * Number of input tokens used for this request.
+         */
+        input_tokens: number;
+        /**
+         * Details about the input tokens used for this request.
+         */
+        input_token_details: {
+            /**
+             * Number of text tokens used for this request.
+             */
+            text_tokens: number;
+            /**
+             * Number of audio tokens used for this request.
+             */
+            audio_tokens: number;
+        };
+        /**
+         * Number of output tokens generated.
+         */
+        output_tokens: number;
+        /**
+         * Total number of tokens used.
+         */
+        total_tokens: number;
+    }
+
+    /**
+     * Usage statistics for models that track audio input duration.
+     */
+    export interface DurationUsage {
+        /**
+         * Usage type. Always `duration`.
+         */
+        type: "duration";
+        /**
+         * Duration of the input audio in seconds.
+         */
+        seconds: number;
+    }
+
+    /**
+     * The usage information for the request.
+     */
+    export type Usage = TokenUsage | DurationUsage;
 }
