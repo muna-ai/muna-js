@@ -15,10 +15,10 @@ export interface Parameter {
      */
     name: string;
     /**
-     * Parameter type.
+     * Parameter data type.
      * This is `null` if the type is unknown or unsupported by Muna.
      */
-    type?: Dtype;
+    dtype?: Dtype;
     /**
      * Parameter description.
      */

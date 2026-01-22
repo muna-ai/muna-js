@@ -2,6 +2,7 @@
 + Added `muna.beta.predictions.remote.stream` method to stream remote predictions.
 + Added support for `aac`, `flac`, `opus`, `wav` response formats in `muna.beta.openai.audio.speech.create` function.
 + Refactored `Acceleration` constants to use a `local_` prefix.
++ Refactored `Parameter.type` field to `Parameter.dtype`.
 + Removed `ParameterDenotation` type.
 + Upgraded to Function C 0.0.39.
 

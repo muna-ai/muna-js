@@ -131,7 +131,7 @@ export class ChatCompletionService {
                 it has more than one required input parameter.`
             );
         // Check that the input parameter is `list[Message]`
-        const inputParam = requiredInputs.find(param => param.type === "list");
+        const inputParam = requiredInputs.find(param => param.dtype === "list");
         if (!inputParam)
             throw new Error(
                 `${tag} cannot be used with OpenAI chat completions API because 
@@ -139,36 +139,36 @@ export class ChatCompletionService {
             );
         // Get optional input parameters
         const responseFormatParam = signature.inputs.find(param =>
-            param.type === "dict" &&
+            param.dtype === "dict" &&
             param.denotation === "openai.chat.completions.response_format"
         );
         const reasoningEffortParam = signature.inputs.find(param =>
-            param.type === "string" &&
+            param.dtype === "string" &&
             param.denotation === "openai.chat.completions.reasoning_effort"
         );
         const maxOutputTokensParam = signature.inputs.find(param =>
-            ["int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64"].includes(param.type) &&
+            ["int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64"].includes(param.dtype) &&
             param.denotation === "openai.chat.completions.max_output_tokens"
         );
         const temperatureParam = signature.inputs.find(param =>
-            ["float32", "float64"].includes(param.type) &&
+            ["float32", "float64"].includes(param.dtype) &&
             param.denotation === "openai.chat.completions.temperature"
         );
         const topPParam = signature.inputs.find(param =>
-            ["float32", "float64"].includes(param.type) &&
+            ["float32", "float64"].includes(param.dtype) &&
             param.denotation === "openai.chat.completions.top_p"
         );
         const frequencyPenaltyParam = signature.inputs.find(param =>
-            ["float32", "float64"].includes(param.type) &&
+            ["float32", "float64"].includes(param.dtype) &&
             param.denotation === "openai.chat.completions.frequency_penalty"
         );
         const presencePenaltyParam = signature.inputs.find(param =>
-            ["float32", "float64"].includes(param.type) &&
+            ["float32", "float64"].includes(param.dtype) &&
             param.denotation === "openai.chat.completions.presence_penalty"
         );
         // Get chat completion output param index
         const completionParamIdx = signature.outputs.findIndex(param =>
-            param.type === "dict" &&
+            param.dtype === "dict" &&
             ["ChatCompletion", "ChatCompletionChunk"].includes(param.schema?.title)
         );
         if (completionParamIdx < 0)

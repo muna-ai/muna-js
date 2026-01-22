@@ -110,7 +110,7 @@ export class SpeechService {
                 it does not have exactly two required input parameters.`
             );
         // Get the text input parameter
-        const inputParam = requiredInputParams.find(param => param.type === "string");
+        const inputParam = requiredInputParams.find(param => param.dtype === "string");
         if (!inputParam)
             throw new Error(
                 `${tag} cannot be used with OpenAI speech API because 
@@ -118,7 +118,7 @@ export class SpeechService {
             );
         // Get the voice input parameter
         const voiceParam = requiredInputParams.find(param =>
-            param.type === "string" &&
+            param.dtype === "string" &&
             param.denotation === "openai.audio.speech.voice"
         );
         if (!voiceParam)
@@ -128,12 +128,12 @@ export class SpeechService {
             );
         // Get the speed input parameter (optional)
         const speedParam = signature.inputs.find(param =>
-            ["float32", "float64"].includes(param.type) &&
+            ["float32", "float64"].includes(param.dtype) &&
             param.denotation === "openai.audio.speech.speed"
         );
         // Get the index of the audio output parameter
         const audioParamIdx = signature.outputs.findIndex(param =>
-            param.type === "float32" &&
+            param.dtype === "float32" &&
             param.denotation === "audio"
         );
         if (audioParamIdx < 0)

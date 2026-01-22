@@ -93,7 +93,7 @@ export class EmbeddingService {
                 it has more than one required input parameters.`
             );
         // Check that the input parameter is `list[str]`
-        const inputParam = signature.inputs.find(param => param.type === "list");
+        const inputParam = signature.inputs.find(param => param.dtype === "list");
         if (!inputParam)
             throw new Error(
                 `${tag} cannot be used with OpenAI embedding API because 
@@ -101,12 +101,12 @@ export class EmbeddingService {
             );
         // Get the Matryoshka dim parameter (optional)
         const matryoshkaParam = signature.inputs.find(param => 
-            param.type.includes("int") && 
+            param.dtype.includes("int") && 
             param.denotation === "openai.embeddings.dims"
         );
         // Get the index of the embedding output parameter
         const embeddingParamIdx = signature.outputs.findIndex(param =>
-            param.type === "float32" &&
+            param.dtype === "float32" &&
             param.denotation === "embedding"
         );
         if (embeddingParamIdx < 0)
