@@ -17,7 +17,7 @@ class ValueTest {
         const { FXNValue } = await getFxnc();
         const data = readFileSync("test/data/array.npz").buffer as ArrayBuffer;
         const value = FXNValue.createFromBuffer(data, "application/vnd.muna.tensor");
-        expect(value.type).to.equal("float64");
+        expect(value.dtype).to.equal("float64");
         expect(value.shape).to.eql([100, 100, 3]);
     }
 
@@ -27,7 +27,7 @@ class ValueTest {
         const data = readFileSync("test/data/cat.jpg").buffer as ArrayBuffer;
         const value = FXNValue.createFromBuffer(data, "image/*");
         expect(value).to.not.be.null;
-        expect(value.type).to.equal("image");
+        expect(value.dtype).to.equal("image");
         expect(value.shape).to.eql([224, 224, 3]);
     }
 
@@ -37,7 +37,7 @@ class ValueTest {
         const data = readFileSync("test/data/speech.wav").buffer as ArrayBuffer;
         const value = FXNValue.createFromBuffer(data, "audio/*");
         expect(value).to.not.be.null;
-        expect(value.type).to.equal("float32");
+        expect(value.dtype).to.equal("float32");
         expect(value.shape!.length).to.eql(2);
         expect([1, 2]).to.include(value.shape![1]);
     }

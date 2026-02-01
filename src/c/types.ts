@@ -22,7 +22,7 @@ declare global {
 
     class FXNValue {
         readonly data: ArrayBuffer | null;
-        readonly type: Dtype;
+        readonly dtype: Dtype;
         readonly shape: number[] | null;
         serialize(mime?: string): ArrayBuffer;
         toObject(): number | string | boolean | Tensor | Image | any[] | Record<string, any> | ArrayBuffer;
@@ -32,6 +32,7 @@ declare global {
         static createList(data: any[]): FXNValue;
         static createDict(data: Record<string, any>): FXNValue;
         static createImage(image: Image, flags: number): FXNValue;
+        static createImageList(images: Image[], flags: number): FXNValue;
         static createBinary(data: ArrayBuffer, flags: number): FXNValue;
         static createNull(): FXNValue;
         static createFromBuffer(data: ArrayBuffer, mime: string): FXNValue;

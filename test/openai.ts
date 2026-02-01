@@ -49,6 +49,18 @@ class OpenAITest {
     }
 
     @mocha.test
+    async "Should create speech"() {
+        const openai = this.muna.beta.openai;
+        const response = await openai.audio.speech.create({
+            model: "@kitten-ml/kitten-tts",
+            input: "What a time to be alive",
+            voice: "expr-voice-2-m",
+            acceleration: "local_auto"
+        });
+        expect(response.headers.get("content-type")?.startsWith("audio/mp3"));
+    }
+
+    @mocha.test
     async "Should create text embeddings"() {
         const openai = this.muna.beta.openai;
         const response = await openai.embeddings.create({

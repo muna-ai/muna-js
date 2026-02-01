@@ -151,12 +151,6 @@ export class SpeechService {
             response_format,
             stream_format
         }: Omit<SpeechCreateParams, "model">): Promise<Response> => {
-            // Check response format
-            if (response_format === "mp3")
-                throw new Error(
-                    `Cannot create speech with response format \`${response_format}\` 
-                    because it is not yet supported.`
-                );
             // Check stream format
             if (stream_format !== "audio")
                 throw new Error(

@@ -9,7 +9,7 @@ export type RemoteAcceleration = "remote_auto" | "remote_cpu" | "remote_a40" | "
 
 export interface RemoteValue {
     data: string | null;
-    type: Dtype;
+    dtype: Dtype;
 }
 
 export type RemotePrediction = 

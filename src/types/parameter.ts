@@ -32,10 +32,6 @@ export interface Parameter {
      */
     optional?: boolean;
     /**
-     * Parameter value range for numeric parameters.
-     */
-    range?: [number, number];
-    /**
      * Parameter value choices for enumeration parameters.
      */
     enumeration?: EnumerationMember[];
@@ -44,6 +40,14 @@ export interface Parameter {
      * This is only populated for `list` and `dict` parameters.
      */
     schema?: Record<string, any>;
+    /**
+     * Parameter minimum value.
+     */
+    min?: number;
+    /**
+     * Parameter maximum value.
+     */
+    max?: number;
     /**
      * Audio sample rate in Hertz.
      */

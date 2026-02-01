@@ -1,6 +1,6 @@
 /*
 *   Muna
-*   Copyright © 2025 NatML Inc. All Rights Reserved.
+*   Copyright © 2026 NatML Inc. All Rights Reserved.
 */
 
 import chalk from "chalk"
@@ -9,8 +9,8 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 const { writeFile, mkdir } = fsPromises;
 
-const FXNC_VERSION = "0.0.39";
-const FXNODE_VERSION = "0.0.4";
+const FXNC_VERSION = "0.0.40";
+const FXNODE_VERSION = "0.0.5";
 
 function getLibName() {
   switch (process.platform) {

@@ -24,7 +24,6 @@ export type Dtype =
     "list"          |
     "dict"          |
     "image"         |
+    "image_list"    |
     "binary"        |
-    "value_list"    |
-    "value_map"     |
     "null";
