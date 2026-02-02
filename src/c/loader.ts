@@ -6,6 +6,7 @@
 import { FXNC } from "./types"
 
 let fxnc: FXNC = undefined;
+const FXNC_VERSION = "0.0.41";
 
 export interface GetFxncInput {
     url?: string;
@@ -32,7 +33,7 @@ export async function getFxnc(input?: GetFxncInput): Promise<FXNC> {
 }
 
 function createWasmFxnc(input?: GetFxncInput): Promise<FXNC> {
-    const version = input?.version ?? "0.0.39";
+    const version = input?.version ?? FXNC_VERSION;
     const url = input?.url ?? `https://cdn.fxn.ai/fxnc/${version}`;
     return new Promise<FXNC>((resolve, reject) => {
         const script = document.createElement("script");

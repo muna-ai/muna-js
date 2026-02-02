@@ -5,7 +5,7 @@
 + Refactored `Parameter.type` field to `Parameter.dtype`.
 + Replaced `Parameter.range` field with `Parameter.min` and `Parameter.max` fields.
 + Removed `ParameterDenotation` type.
-+ Upgraded to Function C 0.0.40.
++ Upgraded to Function C 0.0.41.
 
 ## 0.0.50
 + Added `muna.beta.openai.embeddings.create` method for using text embedding predictors via the OpenAI client.
