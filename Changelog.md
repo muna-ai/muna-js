@@ -1,3 +1,6 @@
+## 0.0.52
+*INCOMPLETE*
+
 ## 0.0.51
 + Added `muna.beta.predictions.remote.stream` method to stream remote predictions.
 + Added support for `aac`, `flac`, `mp3`, `opus`, `wav` response formats in `muna.beta.openai.audio.speech.create` function.
