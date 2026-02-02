@@ -45,7 +45,7 @@ export class RemotePredictionService {
             .entries(inputs)
             .map(async ([name, object]) => [
                 name,
-                await this.toValue({ object })
+                await createRemoteValue({ object })
             ] satisfies [string, RemoteValue])
         ));
         this.fxnc ??= await getFxnc();
@@ -56,7 +56,7 @@ export class RemotePredictionService {
             headers: { "Content-Type": "application/json" },
             body: { tag, inputs: inputMap, acceleration, clientId }
         });
-        const prediction = await downloadPrediction(remotePrediction);
+        const prediction = await parseRemotePrediction(remotePrediction);
         return prediction;
     }
 
@@ -70,7 +70,7 @@ export class RemotePredictionService {
             .entries(inputs)
             .map(async ([name, object]) => [
                 name,
-                await this.toValue({ object })
+                await createRemoteValue({ object })
             ] satisfies [string, RemoteValue])
         ));
         this.fxnc ??= await getFxnc();
@@ -82,224 +82,118 @@ export class RemotePredictionService {
             body: { tag, inputs: inputMap, acceleration, clientId, stream: true }
         });
         for await (const event of stream) {
-            const prediction = await downloadPrediction(event.data);
+            const prediction = await parseRemotePrediction(event.data);
             yield prediction;
         }
     }
-
-    private async toValue(input: ToValueInput): Promise<RemoteValue> {
-        const { object } = input;
-        if (object === null)
-            return { data: null, type: "null" };
-        if (typeof(object) === "number") {
-            const type: Dtype = Number.isInteger(object) ? "int32" : "float32";
-            const data = type === "int32" ? new Int32Array([ object ]) : new Float32Array([ object ]);
-            const tensor: Tensor = { data, shape: [] };
-            return await this.toValue({ ...input, object: tensor });
-        }
-        if (typeof(object) === "boolean") {
-            const data = new BoolArray([ object ]);
-            const tensor: Tensor = { data, shape: [] };
-            return await this.toValue({ ...input, object: tensor });
-        }
-        if (isTypedArray(object)) {
-            const tensor: Tensor = { data: object, shape: [object.length] };
-            return await this.toValue({ ...input, object: tensor });
-        }
-        if (isTensor(object)) { // INCOMPLETE
-            const { data: { buffer }, shape } = object;
-            const data = await this.upload({ buffer: buffer as ArrayBuffer });
-            const type = getTypedArrayDtype(object.data);
-            return { data, type };
-        }
-        if (typeof(object) === "string") {
-            const buffer = new TextEncoder().encode(object).buffer;
-            const data = await this.upload({ buffer, mime: "text/plain" });
-            return { data, type: "string" };
-        }
-        if (Array.isArray(object)) {
-            const listStr = JSON.stringify(object);
-            const buffer = new TextEncoder().encode(listStr).buffer;
-            const data = await this.upload({ buffer, mime: "application/json" });
-            return { data, type: "list" };
-        }
-        if (isImage(object)) { // INCOMPLETE
-            throw new Error("Failed to serialize image because it is not yet supported");
-        }
-        if (object instanceof ArrayBuffer) {
-            const data = await this.upload({ buffer: object });
-            return { data, type: "binary" };
-        }
-        if (typeof(object) === "object") {
-            const dictStr = JSON.stringify(object);
-            const buffer = new TextEncoder().encode(dictStr).buffer;
-            const data = await this.upload({ buffer, mime: "application/json" });
-            return { data, type: "dict" };
-        }
-        throw new Error(`Failed to serialize value '${object}' of type \`${typeof(object)}\` because it is not supported`);
-    }
-
-    private async toObject({ data: url, type }: RemoteValue): Promise<Value> {
-        const shape: number[] = []; // INCOMPLETE
-        if (type === "null")
-            return null;
-        const buffer = await this.download(url);
-        if (type === "float16")
-            throw new Error("Failed to deserialize value because JavaScript does not support half-precision floating point numbers");
-        if (type === "float32") {
-            const data = new Float32Array(buffer);
-            return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-        }
-        if (type === "float64") {
-            const data = new Float64Array(buffer);
-            return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-        }
-        if (type === "int8") {
-            const data = new Int8Array(buffer);
-            return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-        }
-        if (type === "int16") {
-            const data = new Int16Array(buffer);
-            return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-        }
-        if (type === "int32") {
-            const data = new Int32Array(buffer);
-            return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-        }
-        if (type === "int64") {
-            const data = new BigInt64Array(buffer);
-            return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-        }
-        if (type === "uint8") {
-            const data = new Uint8Array(buffer);
-            return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-        }
-        if (type === "uint16") {
-            const data = new Uint16Array(buffer);
-            return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-        }
-        if (type === "uint32") {
-            const data = new Uint32Array(buffer);
-            return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-        }
-        if (type === "uint64") {
-            const data = new BigUint64Array(buffer);
-            return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-        }
-        if (type === "bool") {
-            const data = new BoolArray(buffer);
-            return shape.length > 0 ? { data, shape } satisfies Tensor : !!data[0];
-        }
-        if (type === "string")
-            return new TextDecoder().decode(buffer);
-        if (type === "list" || type === "dict") {
-            const json = new TextDecoder().decode(buffer);
-            return JSON.parse(json);
-        }
-        if (type === "image") // INCOMPLETE
-            throw new Error("Failed to deserialize image because it is not yet supported");
-        if (type === "binary")
-            return buffer;
-        throw new Error(`Failed to deserialize value with type \`${type}\` because it is not supported`);
-    }
-
-    private async upload({
-        buffer,
-        mime = "application/octet-stream"
-    }: UploadInput): Promise<string> {
-        return `data:${mime};base64,${encode(buffer)}`;
-    }
-
-    private async download(url: string): Promise<ArrayBuffer> {
-        if (url.startsWith("data:"))
-            return decode(url.split(",")[1]);
-        const response = await fetch(url);
-        const buffer = await response.arrayBuffer();
-        return buffer;
-    }
 }
 
-interface ToValueInput {
-    object: Value;
+async function createRemoteValue(object: Value): Promise<RemoteValue> {
+    const { FXNValue } = await getFxnc();
+    if (object === null)
+        return { data: null, dtype: "null" };
+    if (typeof(object) === "number") {
+        const type: Dtype = Number.isInteger(object) ? "int32" : "float32";
+        const data = type === "int32" ? new Int32Array([ object ]) : new Float32Array([ object ]);
+        const tensor: Tensor = { data, shape: [] };
+        return await createRemoteValue(tensor);
+    }
+    if (typeof(object) === "boolean") {
+        const data = new BoolArray([ object ]);
+        const tensor: Tensor = { data, shape: [] };
+        return await createRemoteValue(tensor);
+    }
+    if (isTypedArray(object)) {
+        const tensor: Tensor = { data: object, shape: [object.length] };
+        return await createRemoteValue(tensor);
+    }
+    if (isTensor(object)) {
+        const value = FXNValue.createArray(object.data, object.shape, 0);
+        const buffer = value.serialize();
+        value.dispose();
+        const data = await uploadValueData({ buffer });
+        const dtype = getTypedArrayDtype(object.data);
+        return { data, dtype };
+    }
+    if (typeof(object) === "string") {
+        const buffer = new TextEncoder().encode(object).buffer;
+        const data = await uploadValueData({ buffer, mime: "text/plain" });
+        return { data, dtype: "string" };
+    }
+    if (Array.isArray(object)) {
+        const listStr = JSON.stringify(object);
+        const buffer = new TextEncoder().encode(listStr).buffer;
+        const data = await uploadValueData({ buffer, mime: "application/json" });
+        return { data, dtype: "list" };
+    }
+    if (isImage(object)) {
+        const value = FXNValue.createImage(object, 0);
+        const buffer = value.serialize();
+        value.dispose();
+        const data = await uploadValueData({ buffer, mime: "image/png" });
+        return { data, dtype: "image" };
+    }
+    if (object instanceof ArrayBuffer) {
+        const data = await uploadValueData({ buffer: object });
+        return { data, dtype: "binary" };
+    }
+    if (typeof(object) === "object") {
+        const dictStr = JSON.stringify(object);
+        const buffer = new TextEncoder().encode(dictStr).buffer;
+        const data = await uploadValueData({ buffer, mime: "application/json" });
+        return { data, dtype: "dict" };
+    }
+    throw new Error(`Failed to serialize value '${object}' of type \`${typeof(object)}\` because it is not supported`);
 }
 
-interface UploadInput {
-    buffer: ArrayBuffer;
-    mime?: string;
-}
-
-async function downloadPrediction(prediction: RemotePrediction): Promise<Prediction> {
-    const results = prediction.results && await Promise.all(prediction.results.map(downloadValue));
-    return { ...prediction, results };
-}
-
-async function downloadValue({ data: url, type}: RemoteValue): Promise<Value> { // INCOMPLETE
-    const shape: number[] = []; // INCOMPLETE // Shape handling
-    if (type === "null")
+async function parseRemoteValue({ data: url, dtype }: RemoteValue): Promise<Value> {
+    const { FXNValue } = await getFxnc();
+    if (dtype === "null")
         return null;
-    const buffer = await download(url);
-    if (type === "bfloat16")
+    const buffer = await downloadValueData(url);
+    if (dtype === "bfloat16")
         throw new Error("Failed to deserialize value because JavaScript does not support bfloat16");
-    if (type === "float16")
+    if (dtype === "float16")
         throw new Error("Failed to deserialize value because JavaScript does not support half-precision floating point numbers");
-    if (type === "float32") {
-        const data = new Float32Array(buffer);
-        return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
+    if (TENSOR_DTYPES.includes(dtype)) {
+        const value = FXNValue.createFromBuffer(buffer, "application/vnd.muna.tensor");
+        const object = value.toObject();
+        value.dispose();
+        return object;
     }
-    if (type === "float64") {
-        const data = new Float64Array(buffer);
-        return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-    }
-    if (type === "int8") {
-        const data = new Int8Array(buffer);
-        return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-    }
-    if (type === "int16") {
-        const data = new Int16Array(buffer);
-        return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-    }
-    if (type === "int32") {
-        const data = new Int32Array(buffer);
-        return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-    }
-    if (type === "int64") {
-        const data = new BigInt64Array(buffer);
-        return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-    }
-    if (type === "uint8") {
-        const data = new Uint8Array(buffer);
-        return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-    }
-    if (type === "uint16") {
-        const data = new Uint16Array(buffer);
-        return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-    }
-    if (type === "uint32") {
-        const data = new Uint32Array(buffer);
-        return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-    }
-    if (type === "uint64") {
-        const data = new BigUint64Array(buffer);
-        return shape.length > 0 ? { data, shape } satisfies Tensor : data[0];
-    }
-    if (type === "bool") {
-        const data = new BoolArray(buffer);
-        return shape.length > 0 ? { data, shape } satisfies Tensor : !!data[0];
-    }
-    if (type === "string")
+    if (dtype === "string")
         return new TextDecoder().decode(buffer);
-    if (type === "list" || type === "dict") {
+    if (dtype === "list" || dtype === "dict") {
         const json = new TextDecoder().decode(buffer);
         return JSON.parse(json);
     }
-    if (type === "image") // INCOMPLETE
-        throw new Error("Failed to deserialize image because it is not yet supported");
-    if (type === "binary")
+    if (dtype === "image") {
+        const value = FXNValue.createFromBuffer(buffer, "image/png");
+        const object = value.toObject();
+        value.dispose();
+        return object;
+    }
+    if (dtype === "binary")
         return buffer;
-    throw new Error(`Failed to deserialize value with type \`${type}\` because it is not supported`);
+    throw new Error(`Failed to deserialize value with type \`${dtype}\` because it is not supported`);
 }
 
-async function download(url: string): Promise<ArrayBuffer> {
+async function parseRemotePrediction(prediction: RemotePrediction): Promise<Prediction> {
+    const results = (
+        prediction.results &&
+        await Promise.all(prediction.results.map(parseRemoteValue))
+    );
+    return { ...prediction, results };
+}
+
+async function uploadValueData({
+    buffer,
+    mime = "application/octet-stream"
+}: { buffer: ArrayBuffer, mime?: string }): Promise<string> {
+    return `data:${mime};base64,${encode(buffer)}`;
+}
+
+async function downloadValueData(url: string): Promise<ArrayBuffer> {
     if (url.startsWith("data:"))
         return decode(url.split(",")[1]);
     const response = await fetch(url);
@@ -322,3 +216,10 @@ function getTypedArrayDtype(data: TypedArray): Dtype {
     if (data instanceof BigUint64Array)     return "uint64";
     throw new Error(`Array is not TypedArray: ${data}`);
 }
+
+const TENSOR_DTYPES: Dtype[] = [
+    "bfloat16", "float16", "float32", "float64",
+    "int8", "int16", "int32", "int64",
+    "uint8", "uint16", "uint32", "uint64",
+    "bool"
+] as const;
