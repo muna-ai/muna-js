@@ -22,8 +22,8 @@ class RemotePredictionTest {
     @mocha.test
     async "Should create a remote prediction"() {
         const prediction = await this.muna.beta.predictions.remote.create({
-            tag: "@fxn/greeting",
-            inputs: { name: "Yusuf" }
+            tag: "@yusuf/area",
+            inputs: { radius: 3 }
         });
         const results = prediction.results;
         expect(results).to.not.be.empty;

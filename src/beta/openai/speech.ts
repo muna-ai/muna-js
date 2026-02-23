@@ -71,7 +71,7 @@ export class SpeechService {
         response_format = "mp3",
         speed = 1.0,
         stream_format = "audio",
-        acceleration = "remote_auto"
+        acceleration = "local_auto"
     }: SpeechCreateParams): Promise<Response> {
         // Ensure we have a delegate
         if (!this.cache.has(tag)) {

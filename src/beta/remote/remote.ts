@@ -45,7 +45,7 @@ export class RemotePredictionService {
             .entries(inputs)
             .map(async ([name, object]) => [
                 name,
-                await createRemoteValue({ object })
+                await createRemoteValue(object)
             ] satisfies [string, RemoteValue])
         ));
         this.fxnc ??= await getFxnc();

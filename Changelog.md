@@ -1,5 +1,6 @@
 ## 0.0.52
-*INCOMPLETE*
++ Fixed remote predictions resulting in prediction errors.
++ Updated OpenAI client to default to local inference.
 
 ## 0.0.51
 + Added `muna.beta.predictions.remote.stream` method to stream remote predictions.

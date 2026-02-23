@@ -100,7 +100,7 @@ export class ChatCompletionService {
     public create(body: ChatCompletionCreateParamsStreaming): Promise<AsyncGenerator<ChatCompletionChunk>>;
     public create(body: ChatCompletionCreateParamsBase): Promise<ChatCompletion | AsyncGenerator<ChatCompletionChunk>>;
     public async create(body: ChatCompletionCreateParams): Promise<ChatCompletion | AsyncGenerator<ChatCompletionChunk>> {
-        const { model: tag, ...params } = body;
+        const { model: tag, acceleration = "local_auto", ...params } = body;
         // Ensure we have a delegate
         if (!this.cache.has(tag)) {
             const delegate = await this.createDelegate(tag);
@@ -108,7 +108,7 @@ export class ChatCompletionService {
         }
         // Make prediction
         const delegate = this.cache.get(tag);
-        const response = await delegate({ ...params });
+        const response = await delegate({ ...params, acceleration });
         // Return
         return response;
     }

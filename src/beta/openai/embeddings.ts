@@ -58,7 +58,7 @@ export class EmbeddingService {
         model: tag,
         input,
         encoding_format = "float",
-        acceleration = "remote_auto"
+        acceleration = "local_auto"
     }: EmbeddingCreateParams): Promise<CreateEmbeddingResponse> {
         // Ensure we have a delegate
         if (!this.cache.has(tag)) {
