@@ -1,3 +1,6 @@
+## 0.0.53
+*INCOMPLETE*
+
 ## 0.0.52
 + Fixed remote predictions resulting in prediction errors.
 + Updated OpenAI client to default to local inference.
