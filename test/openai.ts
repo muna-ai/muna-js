@@ -33,6 +33,19 @@ class OpenAITest {
     }
 
     @mocha.test
+    async "Should create a chat completion on remote GPU"() {
+        const openai = this.muna.beta.openai;
+        const response = await openai.chat.completions.create({
+            model: "@openai/gpt-oss-20b",
+            messages: [
+                { role: "user", content: "What is the capital of France?" }
+            ],
+            acceleration: "remote_a100"
+        });
+        expect(response).to.not.be.null;
+    }
+
+    @mocha.test
     async "Should stream a chat completion"() {
         const openai = this.muna.beta.openai;
         const stream = await openai.chat.completions.create({

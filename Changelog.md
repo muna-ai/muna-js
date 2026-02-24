@@ -1,5 +1,5 @@
 ## 0.0.53
-*INCOMPLETE*
++ Fixed remote predictions failing due to `undefined` prediction.
 
 ## 0.0.52
 + Fixed remote predictions resulting in prediction errors.

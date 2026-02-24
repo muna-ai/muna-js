@@ -64,13 +64,13 @@ export class RemotePredictionService {
      * Stream a remote prediction.
      * @param input Prediction input.
      */
-    public async * stream(input: CreateRemotePredictionInput): AsyncGenerator<Prediction> { // DEPLOY
+    public async * stream(input: CreateRemotePredictionInput): AsyncGenerator<Prediction> {
         const { tag, inputs, acceleration = "remote_auto" } = input;
         const inputMap = Object.fromEntries(await Promise.all(Object
             .entries(inputs)
             .map(async ([name, object]) => [
                 name,
-                await createRemoteValue({ object })
+                await createRemoteValue(object)
             ] satisfies [string, RemoteValue])
         ));
         this.fxnc ??= await getFxnc();

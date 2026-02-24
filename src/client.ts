@@ -89,7 +89,7 @@ export class MunaClient {
             body: body ? JSON.stringify(body) : undefined
         });
         for await (const { event, data } of response)
-            yield JSON.parse(data);
+            yield { event, data: JSON.parse(data) } as T;
     }
 }
 
