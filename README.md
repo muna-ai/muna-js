@@ -1,6 +1,6 @@
 # Muna for JavaScript
 
-![Muna logo](https://raw.githubusercontent.com/muna-ai/.github/main/logo_wide.png)
+![Muna logo](https://raw.githubusercontent.com/muna-ai/.github/main/banner.png)
 
 Run AI models anywhere.
 
@@ -14,42 +14,41 @@ Muna is distributed on NPM. Open a terminal and run the following command:
 $ npm install muna
 ```
 
-## Retrieving your Access Key
-Head over to [muna.ai](https://muna.ai) to create an account by logging in. Once you do, generate an access key:
+## Running a Model
+First, create a Muna client, specifying your access key ([create one here](https://muna.ai/settings/developer)):
 
-![generate access key](https://raw.githubusercontent.com/muna-ai/.github/main/access_key.gif)
-
-## Making a Prediction
-First, create a Muna client, specifying your access key:
 ```js
 import { Muna } from "muna"
 
-// 💥 Create a Muna client
-const muna = new Muna({ accessKey: "<ACCESS KEY>" });
+// 💥 Create an OpenAI client
+const openai = new Muna({ accessKey: "<ACCESS KEY>" }).beta.openai;
 ```
 
-Next, make a prediction:
+Next, run a model:
 ```js
-// 🔥 Make a prediction
-const prediction = await muna.predictions.create({
-    tag: "@fxn/greeting",
-    inputs: { name: "Rhea" }
+// 🔥 Create a chat completion
+const completion = openai.chat.completions.create({
+  model: "@openai/gpt-oss-20b",
+  messages: [
+    { role: "user", content: "What is the capital of France?" }
+  ],
+  acceleration: "local_gpu"
 });
 ```
 
 Finally, use the results:
 ```js
 // 🚀 Use the results
-console.log(prediction.results[0]);
+console.log(completion.choices[0].message);
 ```
 
 ___
 
 ## Useful Links
-- [Discover predictors to use in your apps](https://muna.ai/explore).
+- [Check out several AI models we've compiled](https://muna.ai/explore).
 - [Join our Slack community](https://muna.ai/slack).
 - [Check out our docs](https://docs.muna.ai).
-- Learn more about us [on our blog](https://blog.muna.ai).
+- [Read our blog](https://muna.ai/blog).
 - Reach out to us at [hi@muna.ai](mailto:hi@muna.ai).
 
 Muna is a product of [NatML Inc](https://github.com/natmlx).

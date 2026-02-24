@@ -1,6 +1,6 @@
 {
   "name": "muna",
-  "version": "0.0.53",
+  "version": "0.0.54",
   "description": "Run AI models anywhere.",
   "scripts": {
     "build": "npm run clean && npm run build:esm && npm run build:umd",
