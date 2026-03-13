@@ -1,5 +1,8 @@
 ## 0.0.54
-*INCOMPLETE*
++ Added `muna.beta.openai.audio.transcriptions.create` method for using speech-to-text models via our OpenAI-compatible client.
++ Added `muna.beta.openai.images.create` method for using image generation models via our OpenAI-compatible client.
++ Added `Audio` type for creating transcriptions from raw PCM audio buffers.
++ Added support for using `muna` client in web workers.
 
 ## 0.0.53
 + Fixed remote predictions failing due to `undefined` prediction.

@@ -6,7 +6,7 @@
 import type { PredictionService, PredictorService } from "../../services"
 import type { RemotePredictionService } from "../remote"
 import { SpeechService } from "./speech"
-import { TranscriptionService } from "./transcription"
+import { TranscriptionService } from "./transcriptions"
 
 export class AudioService {
 
@@ -18,7 +18,7 @@ export class AudioService {
     /**
      * Transcribe audio.
      */
-    private readonly transcriptions: TranscriptionService;
+    public readonly transcriptions: TranscriptionService;
 
     public constructor(
         predictors: PredictorService,

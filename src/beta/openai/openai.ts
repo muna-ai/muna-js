@@ -8,6 +8,7 @@ import type { RemotePredictionService } from "../remote"
 import { AudioService } from "./audio"
 import { ChatService } from "./chat"
 import { EmbeddingService } from "./embeddings"
+import { ImageService } from "./images"
 
 export class OpenAIClient {
 
@@ -26,6 +27,11 @@ export class OpenAIClient {
      */
     public readonly audio: AudioService;
 
+    /**
+     * Create images.
+     */
+    public readonly images: ImageService;
+
     public constructor(
         predictors: PredictorService,
         predictions: PredictionService,
@@ -34,5 +40,6 @@ export class OpenAIClient {
         this.chat = new ChatService(predictors, predictions, remotePredictions);
         this.embeddings = new EmbeddingService(predictors, predictions, remotePredictions);
         this.audio = new AudioService(predictors, predictions, remotePredictions);
+        this.images = new ImageService(predictors, predictions, remotePredictions);
     }
 }

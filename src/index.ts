@@ -12,3 +12,4 @@ export type {
     ChatCompletion, ChatCompletionChunk, ChatCompletionMessage,
     CreateEmbeddingResponse, Embedding
 } from "./beta/openai/types"
+export * from "./beta/types"

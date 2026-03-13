@@ -17,10 +17,14 @@ export async function getFxnc(input?: GetFxncInput): Promise<FXNC> {
     if (fxnc)
         return fxnc;
     if (
-        typeof window !== "undefined" &&
-        typeof window.document !== "undefined"
+        typeof self !== "undefined" &&
+        typeof (self as any).importScripts === "function"
     )
-        fxnc = await createWasmFxnc(input);
+        fxnc = await createWebWorkerFxnc(input);
+    else if (
+        typeof (globalThis as any).document !== "undefined"
+    )
+        fxnc = await createWebFxnc(input);
     else if (
         typeof process !== "undefined" &&
         process.versions != null &&
@@ -32,7 +36,7 @@ export async function getFxnc(input?: GetFxncInput): Promise<FXNC> {
     return fxnc;
 }
 
-function createWasmFxnc(input?: GetFxncInput): Promise<FXNC> {
+function createWebFxnc(input?: GetFxncInput): Promise<FXNC> {
     const version = input?.version ?? FXNC_VERSION;
     const url = input?.url ?? `https://cdn.fxn.ai/fxnc/${version}`;
     return new Promise<FXNC>((resolve, reject) => {
@@ -57,6 +61,31 @@ function createWasmFxnc(input?: GetFxncInput): Promise<FXNC> {
         };
         document.body.appendChild(script);
     });
+}
+
+async function createWebWorkerFxnc(input?: GetFxncInput): Promise<FXNC> {
+    const version = input?.version ?? FXNC_VERSION;
+    const url = input?.url ?? `https://cdn.fxn.ai/fxnc/${version}`;
+    const name = "__fxn";
+    // Polyfill browser globals that Emscripten expects but workers lack
+    if (typeof (globalThis as any).window === "undefined")
+        (globalThis as any).window = self;
+    if (typeof (globalThis as any).localStorage === "undefined") {
+        const store = new Map<string, string>();
+        (globalThis as any).localStorage = {
+            getItem: (key: string) => store.get(key) ?? null,
+            setItem: (key: string, value: string) => { store.set(key, value); },
+            removeItem: (key: string) => { store.delete(key); },
+            clear: () => { store.clear(); },
+            get length() { return store.size; },
+            key: (index: number) => [...store.keys()][index] ?? null,
+        };
+    }
+    (self as any).importScripts(`${url}/Function.js`);
+    const moduleLoader = (self as any)[name];
+    (self as any)[name] = null;
+    const locateFile = (path: string) => path === "Function.wasm" ? `${url}/Function.wasm` : path;
+    return moduleLoader({ locateFile });
 }
 
 function createNodeFxnc(input?: GetFxncInput): Promise<FXNC> { // CHECK // Fix this
