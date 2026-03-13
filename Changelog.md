@@ -1,3 +1,6 @@
+## 0.0.55
+*INCOMPLETE*
+
 ## 0.0.54
 + Added `muna.beta.openai.audio.transcriptions.create` method for using speech-to-text models via our OpenAI-compatible client.
 + Added `muna.beta.openai.images.create` method for using image generation models via our OpenAI-compatible client.
