@@ -120,6 +120,20 @@ async function createRemoteValue(object: Value): Promise<RemoteValue> {
         const data = await uploadValueData({ buffer, mime: "text/plain" });
         return { data, dtype: "string" };
     }
+    if (Array.isArray(object) && object.length > 0 && object.every(isTensor)) {
+        const value = FXNValue.createArrayList(object as Tensor[], 0);
+        const buffer = value.serialize();
+        value.dispose();
+        const data = await uploadValueData({ buffer, mime: "application/x-npz" });
+        return { data, dtype: "array_list" };
+    }
+    if (Array.isArray(object) && object.length > 0 && object.every(isImage)) {
+        const value = FXNValue.createImageList(object, 0);
+        const buffer = value.serialize();
+        value.dispose();
+        const data = await uploadValueData({ buffer, mime: "image/avif" });
+        return { data, dtype: "image_list" };
+    }
     if (Array.isArray(object)) {
         const listStr = JSON.stringify(object);
         const buffer = new TextEncoder().encode(listStr).buffer;
@@ -173,6 +187,18 @@ async function parseRemoteValue({ data: url, dtype }: RemoteValue): Promise<Valu
         value.dispose();
         return object;
     }
+    if (dtype === "array_list") {
+        const value = FXNValue.createFromBuffer(buffer, "application/x-npz");
+        const object = value.toObject();
+        value.dispose();
+        return object;
+    }
+    if (dtype === "image_list") {
+        const value = FXNValue.createFromBuffer(buffer, "image/avif");
+        const object = value.toObject();
+        value.dispose();
+        return object;
+    }
     if (dtype === "binary")
         return buffer;
     throw new Error(`Failed to deserialize value with type \`${dtype}\` because it is not supported`);
@@ -221,5 +247,5 @@ const TENSOR_DTYPES: Dtype[] = [
     "bfloat16", "float16", "float32", "float64",
     "int8", "int16", "int32", "int64",
     "uint8", "uint16", "uint32", "uint64",
-    "bool"
+    "complex64", "complex128", "bool"
 ] as const;

@@ -32,6 +32,7 @@ declare global {
         static createList(data: any[]): FXNValue;
         static createDict(data: Record<string, any>): FXNValue;
         static createImage(image: Image, flags: number): FXNValue;
+        static createArrayList(arrays: Tensor[], flags: number): FXNValue;
         static createImageList(images: Image[], flags: number): FXNValue;
         static createBinary(data: ArrayBuffer, flags: number): FXNValue;
         static createNull(): FXNValue;

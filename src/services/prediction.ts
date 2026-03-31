@@ -5,8 +5,8 @@
 
 import { getFxnc, type FXNC } from "../c"
 import type { MunaClient } from "../client"
-import { BoolArray, isImage, isTensor } from "../types"
-import type { Acceleration, Prediction, TypedArray, Value } from "../types"
+import { BoolArray, isImage, isTensor, isTypedArray } from "../types"
+import type { Acceleration, Image, Prediction, Tensor, TypedArray, Value } from "../types"
 
 export interface CreatePredictionInput {
     /**
@@ -185,6 +185,10 @@ export class PredictionService {
             return FXNValue.createArray(new BoolArray([value]), null, 1);
         if (isImage(value))
             return FXNValue.createImage(value, 0);
+        if (Array.isArray(value) && value.length > 0 && value.every(isTensor))
+            return FXNValue.createArrayList(value as Tensor[], 0);
+        if (Array.isArray(value) && value.length > 0 && value.every(isImage))
+            return FXNValue.createImageList(value as Image[], 0);
         if (Array.isArray(value))
             return FXNValue.createList(value);
         if (typeof(value) === "object")

@@ -87,7 +87,9 @@ export type Value =
     { [key: string]: any }          |
     TypedArray                      |
     Tensor                          |
+    Tensor[]                        |
     Image                           |
+    Image[]                         |
     ArrayBuffer                     |
     null;
 

@@ -1,5 +1,7 @@
 ## 0.0.55
-*INCOMPLETE*
++ Added support for making predictions with `Tensor[]` lists of tensors.
++ Added support for making predictions with `Image[]` lists of images.
++ Upgraded to Function C 0.0.43.
 
 ## 0.0.54
 + Added `muna.beta.openai.audio.transcriptions.create` method for using speech-to-text models via our OpenAI-compatible client.

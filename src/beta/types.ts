@@ -12,7 +12,7 @@ export interface Audio {
      */
     samples: Float32Array;
     /**
-     * Audio sample rate in Hertz.
+     * Audio sample rate.
      */
     sampleRate: number;
     /**

@@ -19,11 +19,14 @@ export type Dtype =
     "uint16"        |
     "uint32"        |
     "uint64"        |
+    "complex64"     |
+    "complex128"    |
     "bool"          |
     "string"        |
     "list"          |
     "dict"          |
     "image"         |
+    "array_list"    |
     "image_list"    |
     "binary"        |
     "null";
