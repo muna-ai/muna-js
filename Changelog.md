@@ -1,5 +1,6 @@
 ## 0.0.56
-*INCOMPLETE*
++ Fixed bug where array list and image list values are empty when making predictions.
++ Upgraded to Function C 0.0.44.
 
 ## 0.0.55
 + Added support for making predictions with `Tensor[]` lists of tensors.

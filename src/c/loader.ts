@@ -6,7 +6,7 @@
 import { FXNC } from "./types"
 
 let fxnc: FXNC = undefined;
-const FXNC_VERSION = "0.0.43";
+const FXNC_VERSION = "0.0.44";
 
 export interface GetFxncInput {
     url?: string;
