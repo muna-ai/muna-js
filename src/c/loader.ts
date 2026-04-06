@@ -60,9 +60,12 @@ function createWebFxnc(input?: GetFxncInput): Promise<FXNC> {
             const locateFile = (path: string) => path === "Function.wasm" ? `${url}/Function.wasm` : path;
             const moduleLoader = (window as any)[name];
             (window as any)[name] = null;
-            // Load
+            // Create module
+            const scriptResponse = await fetch(`${url}/Function.js`);
+            const scriptBlob = await scriptResponse.blob();
+            const mainScriptUrlOrBlob = URL.createObjectURL(scriptBlob);
             try {
-                const fxnc = await moduleLoader({ locateFile });
+                const fxnc = await moduleLoader({ locateFile, mainScriptUrlOrBlob });
                 resolve(fxnc);
             } catch (error) {
                 reject(`Failed to load Muna implementation for in-browser predictions with error: ${error}`);
@@ -96,7 +99,10 @@ async function createWebWorkerFxnc(input?: GetFxncInput): Promise<FXNC> {
         (globalThis as any).window = self;
     const moduleLoader = (self as any)[name];
     (self as any)[name] = null;
-    const mainScriptUrlOrBlob = `${url}/Function.js`;
+    // Create module
+    const scriptResponse = await fetch(`${url}/Function.js`);
+    const scriptBlob = await scriptResponse.blob();
+    const mainScriptUrlOrBlob = URL.createObjectURL(scriptBlob);
     const locateFile = (path: string) => path === "Function.wasm" ? `${url}/Function.wasm` : path;
     return moduleLoader({ mainScriptUrlOrBlob, locateFile });
 }

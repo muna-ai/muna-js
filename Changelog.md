@@ -1,5 +1,5 @@
 ## 0.0.57
-*INCOMPLETE*
++ Fixed error when making local prediction caused by cross-origin script download.
 
 ## 0.0.56
 + Added support for remote and adaptive `acceleration` in `muna.preditions.create` method.
