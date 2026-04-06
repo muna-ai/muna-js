@@ -4,10 +4,9 @@
 */
 
 import { getFxnc } from "../../c"
-import type { CreatePredictionInput, PredictorService, PredictionService } from "../../services"
+import type { PredictorService, PredictionService } from "../../services"
 import { isTensor, type Tensor } from "../../types"
-import type { Acceleration, Prediction, Value } from "../../types"
-import type { CreateRemotePredictionInput, RemoteAcceleration, RemotePredictionService } from "../remote"
+import type { Acceleration, Value } from "../../types"
 
 export type SpeechResponseFormat = "aac" | "flac" | "mp3" | "opus" | "pcm" | "wav";
 export type SpeechStreamFormat = "audio" | "sse";
@@ -41,7 +40,7 @@ export interface SpeechCreateParams {
     /**
      * Prediction acceleration.
      */
-    acceleration?: Acceleration | RemoteAcceleration;
+    acceleration?: Acceleration;
 }
 
 type SpeechDelegate = (params: Omit<SpeechCreateParams, "model">) => Promise<Response>;
@@ -50,17 +49,11 @@ export class SpeechService {
 
     private readonly predictors: PredictorService;
     private readonly predictions: PredictionService;
-    private readonly remotePredictions: RemotePredictionService;
     private readonly cache: Map<string, SpeechDelegate>;
 
-    public constructor(
-        predictors: PredictorService,
-        predictions: PredictionService,
-        remotePredictions: RemotePredictionService
-    ) {
+    public constructor(predictors: PredictorService, predictions: PredictionService) {
         this.predictors = predictors;
         this.predictions = predictions;
-        this.remotePredictions = remotePredictions;
         this.cache = new Map<string, SpeechDelegate>();
     }
 
@@ -165,7 +158,7 @@ export class SpeechService {
             if (speed != null && speedParam)
                 predictionInputs[speedParam.name] = speed;
             // Create prediction
-            const prediction = await this.createPrediction({
+            const prediction = await this.predictions.create({
                 tag,
                 inputs: predictionInputs,
                 acceleration
@@ -185,7 +178,7 @@ export class SpeechService {
             if (![1, 2].includes(audio.shape.length))
                 throw new Error(`${tag} returned audio tensor with invalid shape: ${audio.shape}`);
             // Create response
-            const { content, contentType } = await this.createResponseData({
+            const { content, contentType } = await createResponseData({
                 audio,
                 sampleRate: audioParam.sampleRate,
                 responseFormat: response_format
@@ -204,36 +197,29 @@ export class SpeechService {
         // Return
         return delegate;
     }
+}
 
-    private createPrediction(input: CreatePredictionInput | CreateRemotePredictionInput): Promise<Prediction> {
-        if ((input.acceleration as string).startsWith("remote_"))
-            return this.remotePredictions.create(input as CreateRemotePredictionInput);
-        else
-            return this.predictions.create(input as CreatePredictionInput);
-    }
-
-    private async createResponseData({
-        audio,
-        sampleRate,
-        responseFormat
-    }: { audio: Tensor, sampleRate: number, responseFormat: SpeechResponseFormat }) {
-        const channels = audio.shape.length == 2 ? audio.shape[1] : 1;
-        if (responseFormat === "pcm") {
-            const contentType = [
-                `audio/pcm`,
-                `rate=${sampleRate}`,
-                `channels=${channels}`,
-                `encoding=float`,
-                `bits=32`
-            ].join(";");
-            const content = audio.data.buffer as ArrayBuffer;
-            return { content, contentType };
-        }
-        const { FXNValue } = await getFxnc();
-        const audioValue = FXNValue.createArray(audio.data, audio.shape, 0);
-        const contentType = `audio/${responseFormat};rate=${sampleRate}`;
-        const content = audioValue.serialize(contentType);
-        audioValue.dispose();
+async function createResponseData({
+    audio,
+    sampleRate,
+    responseFormat
+}: { audio: Tensor, sampleRate: number, responseFormat: SpeechResponseFormat }) {
+    const channels = audio.shape.length == 2 ? audio.shape[1] : 1;
+    if (responseFormat === "pcm") {
+        const contentType = [
+            `audio/pcm`,
+            `rate=${sampleRate}`,
+            `channels=${channels}`,
+            `encoding=float`,
+            `bits=32`
+        ].join(";");
+        const content = audio.data.buffer as ArrayBuffer;
         return { content, contentType };
     }
+    const { FXNValue } = await getFxnc();
+    const audioValue = FXNValue.createArray(audio.data, audio.shape, 0);
+    const contentType = `audio/${responseFormat};rate=${sampleRate}`;
+    const content = audioValue.serialize(contentType);
+    audioValue.dispose();
+    return { content, contentType };
 }

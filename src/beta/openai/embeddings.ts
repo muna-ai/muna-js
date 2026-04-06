@@ -4,10 +4,9 @@
 */
 
 import { encode } from "base64-arraybuffer"
-import type { CreatePredictionInput, PredictorService, PredictionService } from "../../services"
+import type { PredictorService, PredictionService } from "../../services"
 import { isTensor } from "../../types"
-import type { Acceleration, Prediction, Tensor, Value } from "../../types"
-import type { CreateRemotePredictionInput, RemoteAcceleration, RemotePredictionService } from "../remote"
+import type { Acceleration, Tensor, Value } from "../../types"
 import type { CreateEmbeddingResponse, Embedding } from "./types"
 
 export interface EmbeddingCreateParams {
@@ -31,7 +30,7 @@ export interface EmbeddingCreateParams {
     /**
      * Prediction acceleration.
      */
-    acceleration?: Acceleration | RemoteAcceleration;
+    acceleration?: Acceleration;
 }
 
 type EmbeddingDelegate = (params: Omit<EmbeddingCreateParams, "model">) => Promise<CreateEmbeddingResponse>;
@@ -40,17 +39,11 @@ export class EmbeddingService {
 
     private readonly predictors: PredictorService;
     private readonly predictions: PredictionService;
-    private readonly remotePredictions: RemotePredictionService;
     private readonly cache: Map<string, EmbeddingDelegate>;
 
-    public constructor(
-        predictors: PredictorService,
-        predictions: PredictionService,
-        remotePredictions: RemotePredictionService
-    ) {
+    public constructor(predictors: PredictorService, predictions: PredictionService) {
         this.predictors = predictors;
         this.predictions = predictions;
-        this.remotePredictions = remotePredictions;
         this.cache = new Map<string, EmbeddingDelegate>();
     }
 
@@ -128,7 +121,7 @@ export class EmbeddingService {
             if (dimensions != null && matryoshkaParam)
                 predictionInputs[matryoshkaParam.name] = dimensions;
             // Create prediction
-            const prediction = await this.createPrediction({
+            const prediction = await this.predictions.create({
                 tag,
                 inputs: predictionInputs,
                 acceleration
@@ -165,13 +158,6 @@ export class EmbeddingService {
         };
         // Return
         return delegate;
-    }
-
-    private createPrediction(input: CreatePredictionInput | CreateRemotePredictionInput): Promise<Prediction> {
-        if ((input.acceleration as string).startsWith("remote_"))
-            return this.remotePredictions.create(input as CreateRemotePredictionInput);
-        else
-            return this.predictions.create(input as CreatePredictionInput);
     }
 
     private parseEmbedding(matrix: Tensor, index: number, encoding: "float" | "base64"): Embedding {

@@ -6,17 +6,11 @@
 import type { MunaClient } from "../client"
 import type { PredictionService, PredictorService } from "../services"
 import { OpenAIClient } from "./openai"
-import { PredictionService as BetaPredictionService } from "./remote"
 
 /**
  * Client for incubating features.
  */
 export class BetaClient {
-
-    /**
-     * Make predictions.
-     */
-    public readonly predictions: BetaPredictionService;
 
     /**
      * OpenAI client.
@@ -28,7 +22,6 @@ export class BetaClient {
         predictors: PredictorService,
         predictions: PredictionService
     ) {
-        this.predictions = new BetaPredictionService(client);
-        this.openai = new OpenAIClient(predictors, predictions, this.predictions.remote);
+        this.openai = new OpenAIClient(predictors, predictions);
     }
 }

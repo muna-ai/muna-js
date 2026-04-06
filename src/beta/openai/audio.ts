@@ -4,7 +4,6 @@
 */
 
 import type { PredictionService, PredictorService } from "../../services"
-import type { RemotePredictionService } from "../remote"
 import { SpeechService } from "./speech"
 import { TranscriptionService } from "./transcriptions"
 
@@ -20,12 +19,8 @@ export class AudioService {
      */
     public readonly transcriptions: TranscriptionService;
 
-    public constructor(
-        predictors: PredictorService,
-        predictions: PredictionService,
-        remotePredictions: RemotePredictionService
-    ) {
-        this.speech = new SpeechService(predictors, predictions, remotePredictions);
-        this.transcriptions = new TranscriptionService(predictors, predictions, remotePredictions);
+    public constructor(predictors: PredictorService, predictions: PredictionService) {
+        this.speech = new SpeechService(predictors, predictions);
+        this.transcriptions = new TranscriptionService(predictors, predictions);
     }
 }

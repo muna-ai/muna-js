@@ -7,7 +7,6 @@ import { encode } from "base64-arraybuffer"
 import { getFxnc } from "../../c"
 import type { CreatePredictionInput, PredictorService, PredictionService } from "../../services"
 import type { Acceleration, Prediction, Image, Value } from "../../types"
-import type { CreateRemotePredictionInput, RemoteAcceleration, RemotePredictionService } from "../remote"
 import type { ImageResponse } from "./types"
 
 export type ImageSize =
@@ -52,7 +51,7 @@ export interface ImageCreateParams {
     /**
      * Prediction acceleration.
      */
-    acceleration?: Acceleration | RemoteAcceleration;
+    acceleration?: Acceleration;
 }
 
 type ImageDelegate = (params: Omit<ImageCreateParams, "model">) => Promise<ImageResponse>;
@@ -61,17 +60,11 @@ export class ImageService {
 
     private readonly predictors: PredictorService;
     private readonly predictions: PredictionService;
-    private readonly remotePredictions: RemotePredictionService;
     private readonly cache: Map<string, ImageDelegate>;
 
-    public constructor(
-        predictors: PredictorService,
-        predictions: PredictionService,
-        remotePredictions: RemotePredictionService
-    ) {
+    public constructor(predictors: PredictorService, predictions: PredictionService) {
         this.predictors = predictors;
         this.predictions = predictions;
-        this.remotePredictions = remotePredictions;
         this.cache = new Map<string, ImageDelegate>();
     }
 
@@ -164,7 +157,7 @@ export class ImageService {
                 predictionInputs[widthParam.name] = requestedWidth;
             if (requestedHeight != null && heightParam)
                 predictionInputs[heightParam.name] = requestedHeight;
-            const prediction = await this.createPrediction({
+            const prediction = await this.predictions.create({
                 tag,
                 inputs: predictionInputs,
                 acceleration
@@ -187,13 +180,6 @@ export class ImageService {
             return result;
         };
         return delegate;
-    }
-
-    private createPrediction(input: CreatePredictionInput | CreateRemotePredictionInput): Promise<Prediction> {
-        if ((input.acceleration as string)?.startsWith("remote_"))
-            return this.remotePredictions.create(input as CreateRemotePredictionInput);
-        else
-            return this.predictions.create(input as CreatePredictionInput);
     }
 }
 

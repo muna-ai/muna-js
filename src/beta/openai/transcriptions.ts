@@ -4,10 +4,9 @@
 */
 
 import { getFxnc } from "../../c"
-import type { CreatePredictionInput, PredictorService, PredictionService } from "../../services"
+import type { PredictorService, PredictionService } from "../../services"
 import { isTensor } from "../../types"
-import type { Acceleration, Prediction, Tensor, Value } from "../../types"
-import type { CreateRemotePredictionInput, RemoteAcceleration, RemotePredictionService } from "../remote"
+import type { Acceleration, Tensor, Value } from "../../types"
 import { type Audio, isAudio } from "../types"
 import type { Transcription } from "./types"
 
@@ -37,7 +36,7 @@ export interface TranscriptionCreateParams {
     /**
      * Prediction acceleration.
      */
-    acceleration?: Acceleration | RemoteAcceleration;
+    acceleration?: Acceleration;
 }
 
 type TranscriptionDelegate = (params: Omit<TranscriptionCreateParams, "model">) => Promise<Transcription>;
@@ -46,17 +45,11 @@ export class TranscriptionService {
 
     private readonly predictors: PredictorService;
     private readonly predictions: PredictionService;
-    private readonly remotePredictions: RemotePredictionService;
     private readonly cache: Map<string, TranscriptionDelegate>;
 
-    public constructor(
-        predictors: PredictorService,
-        predictions: PredictionService,
-        remotePredictions: RemotePredictionService
-    ) {
+    public constructor(predictors: PredictorService, predictions: PredictionService) {
         this.predictors = predictors;
         this.predictions = predictions;
-        this.remotePredictions = remotePredictions;
         this.cache = new Map<string, TranscriptionDelegate>();
     }
 
@@ -102,7 +95,7 @@ export class TranscriptionService {
                 `it has more than one required input parameter.`
             );
         const audioParam = requiredInputs.find(param =>
-            param.dtype === "float32" &&
+            (param.dtype === "float32" || param.dtype === "array_list") &&
             param.denotation === "audio"
         );
         if (!audioParam)
@@ -123,7 +116,7 @@ export class TranscriptionService {
             param.denotation === "openai.chat.completions.temperature"
         );
         const transcriptionParamIdx = signature.outputs.findIndex(param =>
-            param.dtype === "string"
+            param.dtype === "string" || param.dtype === "list"
         );
         if (transcriptionParamIdx < 0)
             throw new Error(
@@ -137,9 +130,10 @@ export class TranscriptionService {
             temperature,
             acceleration
         }: Omit<TranscriptionCreateParams, "model">): Promise<Transcription> => {
-            const samples = await this.readAudioSamples(file, audioParam.sampleRate);
+            const samples = await readAudioSamples(file, audioParam.sampleRate);
+            const audioInput: Value = audioParam.dtype === "array_list" ? [samples] : samples;
             const predictionInputs: Record<string, Value> = {
-                [audioParam.name]: samples
+                [audioParam.name]: audioInput
             };
             if (language != null && languageParam)
                 predictionInputs[languageParam.name] = language;
@@ -147,14 +141,16 @@ export class TranscriptionService {
                 predictionInputs[promptParam.name] = prompt;
             if (temperature != null && temperatureParam)
                 predictionInputs[temperatureParam.name] = temperature;
-            const prediction = await this.createPrediction({
+            const prediction = await this.predictions.create({
                 tag,
                 inputs: predictionInputs,
                 acceleration
             });
             if (prediction.error)
                 throw new Error(prediction.error);
-            const text = prediction.results[transcriptionParamIdx];
+            let text = prediction.results[transcriptionParamIdx];
+            if (Array.isArray(text))
+                text = text[0];
             if (typeof text !== "string")
                 throw new Error(`${tag} returned object of type ${typeof text} instead of a string`);
             const duration = samples.data.length / audioParam.sampleRate;
@@ -169,40 +165,33 @@ export class TranscriptionService {
         };
         return delegate;
     }
+}
 
-    private createPrediction(input: CreatePredictionInput | CreateRemotePredictionInput): Promise<Prediction> {
-        if ((input.acceleration as string)?.startsWith("remote_"))
-            return this.remotePredictions.create(input as CreateRemotePredictionInput);
-        else
-            return this.predictions.create(input as CreatePredictionInput);
+async function readAudioSamples(
+    file: Blob | ArrayBuffer | Uint8Array | Audio,
+    sampleRate: number
+): Promise<Tensor> {
+    if (isAudio(file)) {
+        if (file.sampleRate !== sampleRate)
+            throw new Error(
+                `Audio sample rate ${file.sampleRate}Hz does not match ` +
+                `the required sample rate of ${sampleRate}Hz.`
+            );
+        const frames = file.samples.length / file.channelCount;
+        const shape = file.channelCount > 1 ? [frames, file.channelCount] : [frames];
+        return { data: file.samples, shape };
     }
-
-    private async readAudioSamples(
-        file: Blob | ArrayBuffer | Uint8Array | Audio,
-        sampleRate: number
-    ): Promise<Tensor> {
-        if (isAudio(file)) {
-            if (file.sampleRate !== sampleRate)
-                throw new Error(
-                    `Audio sample rate ${file.sampleRate}Hz does not match ` +
-                    `the required sample rate of ${sampleRate}Hz.`
-                );
-            const frames = file.samples.length / file.channelCount;
-            const shape = file.channelCount > 1 ? [frames, file.channelCount] : [frames];
-            return { data: file.samples, shape };
-        }
-        const { FXNValue } = await getFxnc();
-        const buffer =
-            !(file instanceof ArrayBuffer) ?
-            file instanceof Uint8Array ?
-            file.buffer as ArrayBuffer :
-            await file.arrayBuffer() :
-            file;
-        const audioValue = FXNValue.createFromBuffer(buffer, `audio/*;rate=${sampleRate}`);
-        const samples = audioValue.toObject();
-        audioValue.dispose();
-        if (!isTensor(samples))
-            throw new Error("Failed to decode audio file into tensor samples");
-        return samples;
-    }
+    const { FXNValue } = await getFxnc();
+    const buffer =
+        !(file instanceof ArrayBuffer) ?
+        file instanceof Uint8Array ?
+        file.buffer as ArrayBuffer :
+        await file.arrayBuffer() :
+        file;
+    const audioValue = FXNValue.createFromBuffer(buffer, `audio/*;rate=${sampleRate}`);
+    const samples = audioValue.toObject();
+    audioValue.dispose();
+    if (!isTensor(samples))
+        throw new Error("Failed to decode audio file into tensor samples");
+    return samples;
 }

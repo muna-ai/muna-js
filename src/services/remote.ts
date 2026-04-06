@@ -4,31 +4,18 @@
 */
 
 import { decode, encode } from "base64-arraybuffer"
-import { getFxnc, type FXNC } from "../../c"
-import type { MunaClient } from "../../client"
-import { BoolArray, isImage, isTensor, isTypedArray } from "../../types"
-import type { Dtype, Prediction, Tensor, TypedArray, Value } from "../../types"
-import type { RemoteAcceleration, RemotePrediction, RemotePredictionEvent, RemoteValue } from "./types"
-
-export interface CreateRemotePredictionInput {
-    /**
-     * Predictor tag.
-     */
-    tag: string;
-    /**
-     * Input values.
-     */
-    inputs: Record<string, Value>;
-    /**
-     * Prediction acceleration.
-     */
-    acceleration?: RemoteAcceleration;
-}
+import { getFxnc } from "../c"
+import type { MunaClient } from "../client"
+import { BoolArray, isImage, isTensor, isTypedArray } from "../types"
+import type {
+    Dtype, Prediction, RemotePrediction, RemotePredictionEvent,
+    RemoteValue, Tensor, TypedArray, Value
+} from "../types"
+import type { CreatePredictionInput } from "./prediction"
 
 export class RemotePredictionService {
 
     private readonly client: MunaClient;
-    private fxnc: FXNC;
 
     public constructor(client: MunaClient) {
         this.client = client;
@@ -39,7 +26,7 @@ export class RemotePredictionService {
      * @param input Prediction input.
      * @returns Prediction.
      */
-    public async create(input: CreateRemotePredictionInput): Promise<Prediction> {
+    public async create(input: CreatePredictionInput): Promise<Prediction> {
         const { tag, inputs, acceleration = "remote_auto" } = input;
         const inputMap = Object.fromEntries(await Promise.all(Object
             .entries(inputs)
@@ -48,8 +35,8 @@ export class RemotePredictionService {
                 await createRemoteValue(object)
             ] satisfies [string, RemoteValue])
         ));
-        this.fxnc ??= await getFxnc();
-        const clientId = this.fxnc?.FXNConfiguration.getClientId() ?? "node";
+        const fxnc = await getFxnc();
+        const clientId = fxnc?.FXNConfiguration.getClientId() ?? "node";
         const remotePrediction = await this.client.request<RemotePrediction>({
             path: "/predictions/remote",
             method: "POST",
@@ -61,10 +48,11 @@ export class RemotePredictionService {
     }
 
     /**
-     * Stream a remote prediction.
+     * Create a streaming prediction.
      * @param input Prediction input.
+     * @returns Prediction stream.
      */
-    public async * stream(input: CreateRemotePredictionInput): AsyncGenerator<Prediction> {
+    public async * stream(input: CreatePredictionInput): AsyncGenerator<Prediction> {
         const { tag, inputs, acceleration = "remote_auto" } = input;
         const inputMap = Object.fromEntries(await Promise.all(Object
             .entries(inputs)
@@ -73,8 +61,8 @@ export class RemotePredictionService {
                 await createRemoteValue(object)
             ] satisfies [string, RemoteValue])
         ));
-        this.fxnc ??= await getFxnc();
-        const clientId = this.fxnc?.FXNConfiguration.getClientId() ?? "node";
+        const fxnc = await getFxnc();
+        const clientId = fxnc?.FXNConfiguration.getClientId() ?? "node";
         const stream = await this.client.stream<RemotePredictionEvent>({
             path: "/predictions/remote",
             method: "POST",

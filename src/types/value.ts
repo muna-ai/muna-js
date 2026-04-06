@@ -3,6 +3,8 @@
 *   Copyright © 2026 NatML Inc. All Rights Reserved.
 */
 
+import type { Dtype } from "./dtype"
+
 /**
  * Boolean typed array.
  */
@@ -92,6 +94,17 @@ export type Value =
     Image[]                         |
     ArrayBuffer                     |
     null;
+
+export interface RemoteValue {
+    /**
+     * Value URL.
+     */
+    data: string | null;
+    /**
+     * Value data type.
+     */
+    dtype: Dtype;
+}
 
 /**
  * Check whether an input value is a Muna `Tensor`.

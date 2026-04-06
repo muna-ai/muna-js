@@ -32,6 +32,11 @@ export interface RequestInput {
 export class MunaClient {
 
     /**
+     * Muna access key.
+     */
+    public readonly accessKey: string | undefined;
+
+    /**
      * Muna API URL.
      */
     public readonly url: string;
@@ -47,6 +52,7 @@ export class MunaClient {
         accessKey = process.env.MUNA_ACCESS_KEY,
         url = process.env.MUNA_API_URL ?? MunaClient.URL
     }: MunaConfig) {
+        this.accessKey = accessKey;
         this.url = url;
         this.auth = accessKey != null ? `Bearer ${accessKey}` : "";
     }

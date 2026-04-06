@@ -6,16 +6,27 @@
 import { FXNC } from "./types"
 
 let fxnc: FXNC = undefined;
-const FXNC_VERSION = "0.0.44";
+let fxncInput: GetFxncInput | undefined;
+const FXNC_VERSION = "0.0.45";
 
 export interface GetFxncInput {
     url?: string;
     version?: string;
 }
 
+/**
+ * Get the input that was used (or will be used) to load FXNC.
+ * `LocalWorkerPredictionService` uses this to forward the URL to the worker
+ * so it loads the same build (e.g. a local threaded build instead of the CDN).
+ */
+export function getFxncInput(): GetFxncInput | undefined {
+    return fxncInput;
+}
+
 export async function getFxnc(input?: GetFxncInput): Promise<FXNC> {
     if (fxnc)
         return fxnc;
+    fxncInput ??= input;
     if (
         typeof self !== "undefined" &&
         typeof (self as any).importScripts === "function"
@@ -67,9 +78,7 @@ async function createWebWorkerFxnc(input?: GetFxncInput): Promise<FXNC> {
     const version = input?.version ?? FXNC_VERSION;
     const url = input?.url ?? `https://cdn.fxn.ai/fxnc/${version}`;
     const name = "__fxn";
-    // Polyfill browser globals that Emscripten expects but workers lack
-    if (typeof (globalThis as any).window === "undefined")
-        (globalThis as any).window = self;
+    // Polyfill localStorage before importing (some code references it at top level)
     if (typeof (globalThis as any).localStorage === "undefined") {
         const store = new Map<string, string>();
         (globalThis as any).localStorage = {
@@ -82,10 +91,14 @@ async function createWebWorkerFxnc(input?: GetFxncInput): Promise<FXNC> {
         };
     }
     (self as any).importScripts(`${url}/Function.js`);
+    // Polyfill `window` after import for embind code that accesses `window.navigator` at runtime.
+    if (typeof (globalThis as any).window === "undefined")
+        (globalThis as any).window = self;
     const moduleLoader = (self as any)[name];
     (self as any)[name] = null;
+    const mainScriptUrlOrBlob = `${url}/Function.js`;
     const locateFile = (path: string) => path === "Function.wasm" ? `${url}/Function.wasm` : path;
-    return moduleLoader({ locateFile });
+    return moduleLoader({ mainScriptUrlOrBlob, locateFile });
 }
 
 function createNodeFxnc(input?: GetFxncInput): Promise<FXNC> { // CHECK // Fix this

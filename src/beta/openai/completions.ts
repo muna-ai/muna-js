@@ -3,9 +3,8 @@
 *   Copyright © 2026 NatML Inc. All Rights Reserved.
 */
 
-import type { CreatePredictionInput, PredictionService, PredictorService } from "../../services"
+import type { PredictionService, PredictorService } from "../../services"
 import type { Acceleration, Prediction, Value } from "../../types"
-import type { CreateRemotePredictionInput, RemoteAcceleration, RemotePredictionService } from "../remote"
 import { ChatCompletionSchema, ChatCompletionChunkSchema } from "./schema"
 import type { ChatCompletion, ChatCompletionChunk, ChatCompletionMessage } from "./types"
 
@@ -51,7 +50,7 @@ export interface ChatCompletionCreateParamsBase {
     /**
      * Prediction acceleration.
      */
-    acceleration?: Acceleration | RemoteAcceleration;
+    acceleration?: Acceleration;
 }
 
 export interface ChatCompletionCreateParamsNonStreaming extends ChatCompletionCreateParamsBase {
@@ -79,17 +78,11 @@ export class ChatCompletionService {
 
     private readonly predictors: PredictorService;
     private readonly predictions: PredictionService;
-    private readonly remotePredictions: RemotePredictionService;
     private readonly cache: Map<string, ChatCompletionDelegate>;
 
-    public constructor(
-        predictors: PredictorService,
-        predictions: PredictionService,
-        remotePredictions: RemotePredictionService
-    ) {
+    public constructor(predictors: PredictorService, predictions: PredictionService) {
         this.predictors = predictors;
         this.predictions = predictions;
-        this.remotePredictions = remotePredictions;
         this.cache = new Map<string, ChatCompletionDelegate>();
     }
 
@@ -208,7 +201,7 @@ export class ChatCompletionService {
             if (presence_penalty != null && presencePenaltyParam)
                 predictionInputs[presencePenaltyParam.name] = presence_penalty;
             // Predict
-            const predictionStream = this.streamPrediction({
+            const predictionStream = this.predictions.stream({
                 tag,
                 inputs: predictionInputs,
                 acceleration
@@ -222,13 +215,6 @@ export class ChatCompletionService {
         };
         // Return
         return delegate;
-    }
-
-    private streamPrediction(input: CreatePredictionInput | CreateRemotePredictionInput): AsyncGenerator<Prediction> {
-        if ((input.acceleration as string)?.startsWith("remote_"))
-            return this.remotePredictions.stream(input as CreateRemotePredictionInput);
-        else
-            return this.predictions.stream(input as CreatePredictionInput);
     }
 }
 

@@ -1,6 +1,11 @@
 ## 0.0.56
++ Added support for remote and adaptive `acceleration` in `muna.preditions.create` method.
++ Added support for batched transcription models in `openai.audio.transcriptions.create` method.
 + Fixed bug where array list and image list values are empty when making predictions.
-+ Upgraded to Function C 0.0.44.
++ Removed `muna.beta.predictions.remote.create` method. Use `muna.predictions.create` method instead.
++ Removed `muna.beta.predictions.remote.stream` method. Use `muna.predictions.stream` method instead.
++ Removed `muna.beta.RemoteAcceleration` type. Use `muna.Acceleration` type instead.
++ Upgraded to Function C 0.0.45.
 
 ## 0.0.55
 + Added support for making predictions with `Tensor[]` lists of tensors.
