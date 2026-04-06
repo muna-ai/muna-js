@@ -7,7 +7,6 @@ export type { MunaAPIError } from "./client"
 export * from "./muna"
 export * from "./types"
 
-export type { CreateRemotePredictionInput, RemoteAcceleration } from "./beta/remote"
 export type {
     ChatCompletion, ChatCompletionChunk, ChatCompletionMessage,
     CreateEmbeddingResponse, Embedding
