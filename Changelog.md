@@ -1,3 +1,6 @@
+## 0.0.57
+*INCOMPLETE*
+
 ## 0.0.56
 + Added support for remote and adaptive `acceleration` in `muna.preditions.create` method.
 + Added support for batched transcription models in `openai.audio.transcriptions.create` method.
