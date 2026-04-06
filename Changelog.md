@@ -1,3 +1,6 @@
+## 0.0.59
+*INCOMPLETE*
+
 ## 0.0.58
 + Fixed module resolution error when making local predictions.
 
