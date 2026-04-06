@@ -1,5 +1,5 @@
 ## 0.0.58
-*INCOMPLETE*
++ Fixed module resolution error when making local predictions.
 
 ## 0.0.57
 + Fixed error when making local prediction caused by cross-origin script download.

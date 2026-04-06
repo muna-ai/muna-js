@@ -15,8 +15,8 @@ export class LocalWorkerPredictionService {
     private ready: Promise<void>;
 
     public constructor(client: MunaClient) {
-        // @ts-ignore: `import.meta.url` is resolved by the consuming bundler
-        const worker = new Worker(new URL("./local.worker.ts", import.meta.url));
+        // @ts-ignore: `import.meta.url` is resolved by the consuming bundler (webpack/turbopack)
+        const worker = new Worker(new URL("./local.worker.js", import.meta.url));
         this.proxy = new WorkerProxy(worker);
         this.ready = this.proxy.call("init", {
             accessKey: client.accessKey,
