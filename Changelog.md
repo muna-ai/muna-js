@@ -1,3 +1,6 @@
+## 0.0.58
+*INCOMPLETE*
+
 ## 0.0.57
 + Fixed error when making local prediction caused by cross-origin script download.
 
