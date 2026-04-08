@@ -74,9 +74,9 @@ export class PredictionService {
     public async * stream(input: CreatePredictionInput): AsyncGenerator<Prediction> {
         const { acceleration = "local_auto" } = input;
         if (acceleration.startsWith("local_"))
-            return this.local.create(input);
+            yield* this.local.stream(input);
         else
-            return this.remote.create(input);
+            yield* this.remote.stream(input);
     }
 
     /**

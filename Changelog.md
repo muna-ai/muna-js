@@ -1,5 +1,5 @@
 ## 0.0.59
-*INCOMPLETE*
++ Fixed `muna.predictions.stream` method never yielding any predictions.
 
 ## 0.0.58
 + Fixed module resolution error when making local predictions.
