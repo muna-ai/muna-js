@@ -1,3 +1,6 @@
+## 0.0.60
+*INCOMPLETE*
+
 ## 0.0.59
 + Fixed `muna.predictions.stream` method never yielding any predictions.
 
