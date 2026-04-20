@@ -49,7 +49,11 @@ export interface Parameter {
      */
     max?: number;
     /**
-     * Audio sample rate in Hertz.
+     * Video frame rate.
+     */
+    frameRate?: number;
+    /**
+     * Audio sample rate.
      */
     sampleRate?: number;
 }
