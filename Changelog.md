@@ -1,5 +1,5 @@
 ## 0.0.60
-*INCOMPLETE*
++ Fixed `ReferenceError: exports is not defined` when importing `muna` from Node JS.
 
 ## 0.0.59
 + Fixed `muna.predictions.stream` method never yielding any predictions.

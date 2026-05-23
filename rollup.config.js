@@ -12,7 +12,7 @@ const config = {
   },
   plugins: [
     commonjs(),
-    resolve(),
+    resolve({ browser: true }),
     json(),
     //terser()
   ],

@@ -5,8 +5,7 @@
 
 import type { MunaClient } from "../client"
 import type { Acceleration, Prediction, Value } from "../types"
-import { LocalPredictionService } from "./local"
-import { LocalWorkerPredictionService } from "./local_worker"
+import { createLocalPredictionService, type LocalPredictionLike } from "./local-platform"
 import { RemotePredictionService } from "./remote"
 
 export interface CreatePredictionInput {
@@ -43,13 +42,11 @@ export interface DeletePredictionInput {
 
 export class PredictionService {
 
-    private readonly local: LocalPredictionService | LocalWorkerPredictionService;
+    private readonly local: LocalPredictionLike;
     private readonly remote: RemotePredictionService;
 
     public constructor(client: MunaClient) {
-        this.local = typeof (globalThis as any).document !== "undefined"
-            ? new LocalWorkerPredictionService(client)
-            : new LocalPredictionService(client);
+        this.local = createLocalPredictionService(client);
         this.remote = new RemotePredictionService(client);
     }
 
