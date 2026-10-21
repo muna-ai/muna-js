@@ -1,3 +1,6 @@
+## 0.0.62
+*INCOMPLETE*
+
 ## 0.0.61
 + Added `Parameter.contextLength` field for the maximum context length in tokens of a chat message parameter.
 + Added `PredictionResource.size` field for the resource size in bytes.
