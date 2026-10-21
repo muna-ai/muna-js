@@ -7,6 +7,7 @@ import { encode } from "base64-arraybuffer"
 import type { PredictorService, PredictionService } from "../../services"
 import { isTensor } from "../../types"
 import type { Acceleration, Tensor, Value } from "../../types"
+import { getParameter, INTEGER_DTYPES } from "../annotations"
 import type { CreateEmbeddingResponse, Embedding } from "./types"
 
 export interface EmbeddingCreateParams {
@@ -50,6 +51,7 @@ export class EmbeddingService {
     public async create({
         model: tag,
         input,
+        dimensions,
         encoding_format = "float",
         acceleration = "local_auto"
     }: EmbeddingCreateParams): Promise<CreateEmbeddingResponse> {
@@ -62,6 +64,7 @@ export class EmbeddingService {
         const delegate = this.cache.get(tag);
         const response = await delegate({
             input: typeof input === "string" ? [input] : input,
+            dimensions,
             encoding_format,
             acceleration
         });
@@ -78,7 +81,7 @@ export class EmbeddingService {
                 the predictor could not be found. Check that your access key 
                 is valid and that you have access to the predictor.`
             );
-        // Check that there is only one required input paramete
+        // Check that there is only one required input parameter
         const signature = predictor.signature;
         if (signature.inputs.filter(param => !param.optional).length !== 1)
             throw new Error(
@@ -86,29 +89,32 @@ export class EmbeddingService {
                 it has more than one required input parameters.`
             );
         // Check that the input parameter is `list[str]`
-        const inputParam = signature.inputs.find(param => param.dtype === "list");
+        const [, inputParam] = getParameter(signature.inputs, { dtype: "list" });
         if (!inputParam)
             throw new Error(
                 `${tag} cannot be used with OpenAI embedding API because 
                 it does not have the required text embedding input parameter.`
             );
         // Get the Matryoshka dim parameter (optional)
-        const matryoshkaParam = signature.inputs.find(param => 
-            param.dtype.includes("int") && 
-            param.denotation === "openai.embeddings.dims"
-        );
+        const [, matryoshkaParam] = getParameter(signature.inputs, {
+            dtype: INTEGER_DTYPES,
+            denotation: "openai.embeddings.dims"
+        });
         // Get the index of the embedding output parameter
-        const embeddingParamIdx = signature.outputs.findIndex(param =>
-            param.dtype === "float32" &&
-            param.denotation === "embedding"
-        );
-        if (embeddingParamIdx < 0)
+        const [embeddingParamIdx] = getParameter(signature.outputs, {
+            dtype: "float32",
+            denotation: "embedding"
+        });
+        if (embeddingParamIdx == null)
             throw new Error(
                 `${tag} cannot be used with OpenAI embedding API because 
                 it has no outputs with an \`embedding\` denotation.`
             );
         // Get the index of the usage output (optional)
-        const usageParamIdx = -1; // INCOMPLETE
+        const usageParamIdx = signature.outputs.findIndex(param =>
+            param.dtype === "dict" &&
+            param.schema?.title === "Usage"
+        );
         // Define the delegate
         const delegate = async ({
             input,

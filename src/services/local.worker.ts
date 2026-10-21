@@ -6,6 +6,7 @@
 import { getFxnc } from "../c"
 import { MunaClient } from "../client"
 import { LocalPredictionService } from "./local"
+import { createBrowserPredictionCacheStorage } from "./prediction-cache-browser"
 
 let service: LocalPredictionService | null = null;
 
@@ -16,7 +17,10 @@ self.onmessage = async (e: MessageEvent) => {
             const { accessKey, url, fxnc: fxncInput } = args[0];
             await getFxnc(fxncInput);
             const client = new MunaClient({ accessKey, url });
-            service = new LocalPredictionService(client);
+            service = new LocalPredictionService(
+                client,
+                createBrowserPredictionCacheStorage()
+            );
             self.postMessage({ id, result: true });
             return;
         }

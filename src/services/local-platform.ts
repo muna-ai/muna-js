@@ -7,6 +7,7 @@ import type { MunaClient } from "../client"
 import type { Prediction } from "../types"
 import { LocalPredictionService } from "./local"
 import type { CreatePredictionInput, DeletePredictionInput } from "./prediction"
+import { createNodePredictionCacheStorage } from "./prediction-cache-node"
 
 export interface LocalPredictionLike {
     create(input: CreatePredictionInput): Promise<Prediction>;
@@ -15,5 +16,5 @@ export interface LocalPredictionLike {
 }
 
 export function createLocalPredictionService(client: MunaClient): LocalPredictionLike {
-    return new LocalPredictionService(client);
+    return new LocalPredictionService(client, createNodePredictionCacheStorage());
 }

@@ -8,6 +8,7 @@ import type { PredictorService, PredictionService } from "../../services"
 import { isTensor } from "../../types"
 import type { Acceleration, Tensor, Value } from "../../types"
 import { type Audio, isAudio } from "../types"
+import { getParameter, FLOAT_DTYPES } from "../annotations"
 import type { Transcription } from "./types"
 
 export interface TranscriptionCreateParams {
@@ -94,31 +95,31 @@ export class TranscriptionService {
                 `${tag} cannot be used with OpenAI transcription API because ` +
                 `it has more than one required input parameter.`
             );
-        const audioParam = requiredInputs.find(param =>
-            (param.dtype === "float32" || param.dtype === "array_list") &&
-            param.denotation === "audio"
-        );
+        const [, audioParam] = getParameter(requiredInputs, {
+            dtype: ["float32", "array_list"],
+            denotation: "audio"
+        });
         if (!audioParam)
             throw new Error(
                 `${tag} cannot be used with OpenAI transcription API because ` +
                 `it does not have a valid audio input parameter.`
             );
-        const languageParam = signature.inputs.find(param =>
-            param.dtype === "string" &&
-            param.denotation === "openai.audio.transcriptions.language"
-        );
-        const promptParam = signature.inputs.find(param =>
-            param.dtype === "string" &&
-            param.denotation === "openai.audio.transcriptions.prompt"
-        );
-        const temperatureParam = signature.inputs.find(param =>
-            ["float32", "float64"].includes(param.dtype) &&
-            param.denotation === "openai.chat.completions.temperature"
-        );
-        const transcriptionParamIdx = signature.outputs.findIndex(param =>
-            param.dtype === "string" || param.dtype === "list"
-        );
-        if (transcriptionParamIdx < 0)
+        const [, languageParam] = getParameter(signature.inputs, {
+            dtype: "string",
+            denotation: "openai.audio.transcriptions.language"
+        });
+        const [, promptParam] = getParameter(signature.inputs, {
+            dtype: "string",
+            denotation: "openai.audio.transcriptions.prompt"
+        });
+        const [, temperatureParam] = getParameter(signature.inputs, {
+            dtype: FLOAT_DTYPES,
+            denotation: "openai.chat.completions.temperature"
+        });
+        const [transcriptionParamIdx] = getParameter(signature.outputs, {
+            dtype: ["string", "list"]
+        });
+        if (transcriptionParamIdx == null)
             throw new Error(
                 `${tag} cannot be used with OpenAI transcription API because ` +
                 `it has no output string parameter.`

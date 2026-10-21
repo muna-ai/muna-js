@@ -56,6 +56,37 @@ export interface Parameter {
      * Audio sample rate.
      */
     sampleRate?: number;
+    /**
+     * Maximum context length in tokens for chat message parameters.
+     */
+    contextLength?: number;
+    /**
+     * Batch configuration for list parameters.
+     */
+    batch?: BatchConfig;
+}
+
+/**
+ * Batching mode for a batched parameter.
+ * - `static`: Fixed-size batches; buffer until capacity, then invoke.
+ * - `dynamic`: Variable-size batches up to capacity.
+ * - `continuous`: Predictor batches internally; callers submit concurrently.
+ */
+export type BatchMode = "static" | "dynamic" | "continuous";
+
+/**
+ * Batch configuration for list parameters.
+ */
+export interface BatchConfig {
+    /**
+     * Batching mode.
+     */
+    mode: BatchMode;
+    /**
+     * Batch capacity.
+     * Required for `static` and `dynamic` modes.
+     */
+    capacity?: number;
 }
 
 /**

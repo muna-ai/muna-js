@@ -52,19 +52,6 @@ export interface Predictor {
      * Date created.
      */
     created: Date;
-    /**
-     * Predictor card.
-     */
-    card?: string;
-    /**
-     * Predictor media URL.
-     * We encourage animated GIF's where possible.
-     */
-    media?: string;
-    /**
-     * Predictor license URL.
-     */
-    license?: string;
 }
 
 /**

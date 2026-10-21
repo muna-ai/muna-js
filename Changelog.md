@@ -1,3 +1,24 @@
+## 0.0.61
++ Added `Parameter.contextLength` field for the maximum context length in tokens of a chat message parameter.
++ Added `PredictionResource.size` field for the resource size in bytes.
++ Added `PredictionRequirements` type and `Prediction.requirements` field describing the hardware a compiled model needs.
++ Added `Parameter.batch` field with `BatchConfig` and `BatchMode` types for batched list parameters.
++ Added support for Hugging Face predictors with `hf:` tags in `muna.predictions` and `muna.predictors.retrieve`.
++ Added persistent caching of prediction configurations so that local predictors can load offline, with token refresh at half-life.
++ Added `tools`, `tool_choice`, and `seed` parameters to `openai.chat.completions.create` method.
++ Added `"none"` reasoning effort to `openai.chat.completions.create` method.
++ Added support for image and audio content parts in `openai.chat.completions.create` messages.
++ Added `reasoning_content` and `tool_calls` to chat completion messages and chunk deltas.
++ Added token usage details to chat completion usage.
++ Added `usage` output support in `openai.embeddings.create` method.
++ Fixed `dimensions` parameter being ignored by `openai.embeddings.create` method.
++ Fixed `MunaAPIError` being exported as a type only, so it can now be used with `instanceof`.
++ Fixed `MunaAPIError` construction failing outside V8 runtimes like Safari and Firefox.
++ Fixed `MunaClient` failing to report API errors with non-JSON or empty response bodies.
++ Fixed streaming requests not raising `MunaAPIError` when the API returns an error status.
++ Fixed crash when constructing a Muna client in browsers where `process` is undefined.
++ Upgraded to Function C 0.0.50.
+
 ## 0.0.60
 + Fixed `ReferenceError: exports is not defined` when importing `muna` from Node JS.
 

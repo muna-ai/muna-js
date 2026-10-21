@@ -57,7 +57,8 @@ export class PredictionService {
      */
     public async create(input: CreatePredictionInput): Promise<Prediction> {
         const { inputs, acceleration = "local_auto" } = input;
-        if (!inputs || acceleration.startsWith("local_"))
+        const isDownloadOnly = !!inputs && Object.keys(inputs).length === 0;
+        if (!inputs || isDownloadOnly || acceleration.startsWith("local_"))
             return this.local.create(input);
         else
             return this.remote.create(input);

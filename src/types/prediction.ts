@@ -51,6 +51,10 @@ export interface Prediction {
      */
     resources?: PredictionResource[];
     /**
+     * Prediction hardware requirements.
+     */
+    requirements?: PredictionRequirements;
+    /**
      * Prediction results.
      */
     results?: Value[];
@@ -85,6 +89,25 @@ export interface PredictionResource {
      * Resource name.
      */
     name?: string;
+    /**
+     * Resource size in bytes.
+     */
+    size?: number;
+}
+
+/**
+ * Hardware requirements of a compiled predictor.
+ */
+export interface PredictionRequirements {
+    /**
+     * Number of GPUs the predictor uses.
+     * This is `null` if the predictor requires no GPU.
+     */
+    gpuCount?: number | null;
+    /**
+     * Required GPU compute architecture (e.g. `sm_100`).
+     */
+    gpuArchitecture?: string | null;
 }
 
 /**

@@ -5,9 +5,10 @@
 
 import { encode } from "base64-arraybuffer"
 import { getFxnc } from "../../c"
-import type { CreatePredictionInput, PredictorService, PredictionService } from "../../services"
-import type { Acceleration, Prediction, Image, Value } from "../../types"
+import type { PredictorService, PredictionService } from "../../services"
+import type { Acceleration, Image, Value } from "../../types"
 import type { ImageResponse } from "./types"
+import { getParameter, INTEGER_DTYPES } from "../annotations"
 
 export type ImageSize =
     | "auto"
@@ -113,28 +114,26 @@ export class ImageService {
                 `${tag} cannot be used with OpenAI image API because ` +
                 `it has more than one required input parameter.`
             );
-        const promptParam = requiredInputs.find(param => param.dtype === "string");
+        const [, promptParam] = getParameter(requiredInputs, { dtype: "string" });
         if (!promptParam)
             throw new Error(
                 `${tag} cannot be used with OpenAI image API because ` +
                 `it does not have a valid text prompt input parameter.`
             );
-        const widthParam = signature.inputs.find(param =>
-            NUMERIC_DTYPES.includes(param.dtype) &&
-            param.denotation === "openai.images.width"
-        );
-        const heightParam = signature.inputs.find(param =>
-            NUMERIC_DTYPES.includes(param.dtype) &&
-            param.denotation === "openai.images.height"
-        );
-        const countParam = signature.inputs.find(param =>
-            NUMERIC_DTYPES.includes(param.dtype) &&
-            param.denotation === "openai.images.count"
-        );
-        const imageParamIdx = signature.outputs.findIndex(param =>
-            param.dtype === "image_list"
-        );
-        if (imageParamIdx < 0)
+        const [, widthParam] = getParameter(signature.inputs, {
+            dtype: INTEGER_DTYPES,
+            denotation: "openai.images.width"
+        });
+        const [, heightParam] = getParameter(signature.inputs, {
+            dtype: INTEGER_DTYPES,
+            denotation: "openai.images.height"
+        });
+        const [, countParam] = getParameter(signature.inputs, {
+            dtype: INTEGER_DTYPES,
+            denotation: "openai.images.count"
+        });
+        const [imageParamIdx] = getParameter(signature.outputs, { dtype: "image_list" });
+        if (imageParamIdx == null)
             throw new Error(
                 `${tag} cannot be used with OpenAI image API because ` +
                 `it has no image outputs.`
@@ -208,8 +207,3 @@ function parseImageSize(size?: ImageSize): [number | null, number | null] {
     const [w, h] = size.split("x", 2);
     return [parseInt(w), parseInt(h)];
 }
-
-const NUMERIC_DTYPES = [
-    "int8", "int16", "int32", "int64",
-    "uint8", "uint16", "uint32", "uint64"
-];

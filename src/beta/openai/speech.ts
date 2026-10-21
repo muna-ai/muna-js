@@ -7,6 +7,7 @@ import { getFxnc } from "../../c"
 import type { PredictorService, PredictionService } from "../../services"
 import { isTensor, type Tensor } from "../../types"
 import type { Acceleration, Value } from "../../types"
+import { getParameter, FLOAT_DTYPES } from "../annotations"
 
 export type SpeechResponseFormat = "aac" | "flac" | "mp3" | "opus" | "pcm" | "wav";
 export type SpeechStreamFormat = "audio" | "sse";
@@ -103,38 +104,37 @@ export class SpeechService {
                 it does not have exactly two required input parameters.`
             );
         // Get the text input parameter
-        const inputParam = requiredInputParams.find(param => param.dtype === "string");
+        const [, inputParam] = getParameter(requiredInputParams, { dtype: "string" });
         if (!inputParam)
             throw new Error(
                 `${tag} cannot be used with OpenAI speech API because 
                 it does not have the required speech input parameter.`
             );
         // Get the voice input parameter
-        const voiceParam = requiredInputParams.find(param =>
-            param.dtype === "string" &&
-            param.denotation === "openai.audio.speech.voice"
-        );
+        const [, voiceParam] = getParameter(requiredInputParams, {
+            dtype: "string",
+            denotation: "openai.audio.speech.voice"
+        });
         if (!voiceParam)
             throw new Error(
                 `${tag} cannot be used with OpenAI speech API because 
                 it does not have the required speech voice parameter.`
             );
         // Get the speed input parameter (optional)
-        const speedParam = signature.inputs.find(param =>
-            ["float32", "float64"].includes(param.dtype) &&
-            param.denotation === "openai.audio.speech.speed"
-        );
+        const [, speedParam] = getParameter(signature.inputs, {
+            dtype: FLOAT_DTYPES,
+            denotation: "openai.audio.speech.speed"
+        });
         // Get the index of the audio output parameter
-        const audioParamIdx = signature.outputs.findIndex(param =>
-            param.dtype === "float32" &&
-            param.denotation === "audio"
-        );
-        if (audioParamIdx < 0)
+        const [audioParamIdx, audioParam] = getParameter(signature.outputs, {
+            dtype: "float32",
+            denotation: "audio"
+        });
+        if (audioParamIdx == null)
             throw new Error(
                 `${tag} cannot be used with OpenAI speech API because 
                 it has no outputs with an \`audio\` denotation.`
             );
-        const audioParam = signature.outputs[audioParamIdx];
         // Define the delegate
         const delegate = async ({
             input,

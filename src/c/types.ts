@@ -14,6 +14,7 @@ declare global {
         token: string | null;
         acceleration: number;
         addResource(resource: PredictionResource): Promise<void>;
+        setMetadata?(key: string, value: string): void;
         dispose(): void;
         static create(): FXNConfiguration;
         static getClientId(): string;
